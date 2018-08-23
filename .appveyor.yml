@@ -18,14 +18,14 @@ build:
 deploy:
 - provider: NuGet
   api_key:
-    secure: JHya5Ty43YO6sMcUKNcOOZLv1C6nY7zCuteX1svvJ7BLgCQJkVfJSbVKLqmvot0i
+    secure: zEQbAlga8jG+2wLGYA3ov+XzksN82Z+eYMRrzdSCMop0bjW/wQEaWQuRy0gIBhOT
   on:
     branch: master
 - provider: GitHub
   tag: v$(appveyor_build_version)
   release: v$(appveyor_build_version)
   auth_token:
-    secure: Iqc9Hb4QNmCVXFtxNxBD4jqun1vcmMlT2iGX6h7+pBZJgPCGRALIIOFrkwXSHyYf
+    secure: AdkABryOiix5T08vepFBdrAq5x+8TRf0SQbYYUPcMciZjl0X0ohq3vfb8hRr8zWm
   artifact: /.*\.nupkg/
   on:
     branch: master
