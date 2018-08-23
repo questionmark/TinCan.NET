@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -13,13 +14,13 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-using System;
+
 using System.Collections.Generic;
 
-namespace TinCan.LRSResponses
+namespace TinCan.LrsResponses
 {
-    public class ProfileKeysLRSResponse : LRSResponse
+    public class ProfileKeysLrsResponse : LrsResponse
     {
-        public List<String> content { set; get; }
+        public List<string> Content { set; get; }
     }
 }

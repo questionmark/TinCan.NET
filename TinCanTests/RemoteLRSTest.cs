@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,23 +16,20 @@
 */
 namespace TinCanTests
 {
-    using System;
     using NUnit.Framework;
-    using Newtonsoft.Json.Linq;
     using TinCan;
-    using TinCan.Json;
 
     [TestFixture]
-    class RemoteLRSTest
+    internal class RemoteLrsTest
     {
         [Test]
         public void TestEmptyCtr()
         {
-            var obj = new RemoteLRS();
-            Assert.IsInstanceOf<RemoteLRS>(obj);
-            Assert.IsNull(obj.endpoint);
-            Assert.IsNull(obj.auth);
-            Assert.IsNull(obj.version);
+            var obj = new RemoteLrs();
+            Assert.IsInstanceOf<RemoteLrs>(obj);
+            Assert.IsNull(obj.Endpoint);
+            Assert.IsNull(obj.Auth);
+            Assert.IsNull(obj.Version);
         }
     }
 }

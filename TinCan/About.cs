@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -13,7 +14,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-using System;
+
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using TinCan.Json;
@@ -22,42 +23,42 @@ namespace TinCan
 {
     public class About : JsonModel
     {
-        public List<TCAPIVersion> version { get; set; }
-        public Extensions extensions { get; set; }
+        public List<TCAPIVersion> Version { get; set; }
+        public Extensions Extensions { get; set; }
 
-        public About(String str) : this(new StringOfJSON(str)) {}
-        public About(StringOfJSON json) : this(json.toJObject()) {}
+        public About(string str) : this(new StringOfJson(str)) {}
+        public About(StringOfJson json) : this(json.ToJObject()) {}
 
         public About(JObject jobj)
         {
             if (jobj["version"] != null)
             {
-                version = new List<TCAPIVersion>();
-                foreach (String item in jobj.Value<JArray>("version"))
+                Version = new List<TCAPIVersion>();
+                foreach (string item in jobj.Value<JArray>("version"))
                 {
-                    version.Add((TCAPIVersion)item);
+                    Version.Add((TCAPIVersion)item);
                 }
             }
             if (jobj["extensions"] != null)
             {
-                extensions = new Extensions(jobj.Value<JObject>("extensions"));
+                Extensions = new Extensions(jobj.Value<JObject>("extensions"));
             }
         }
 
         public override JObject ToJObject(TCAPIVersion version) {
-            JObject result = new JObject();
-            if (this.version != null)
+            var result = new JObject();
+            if (Version != null)
             {
                 var versions = new JArray();
-                foreach (var v in this.version) {
+                foreach (var v in Version) {
                     versions.Add(v.ToString());
                 }
                 result.Add("version", versions);
             }
 
-            if (extensions != null && ! extensions.isEmpty())
+            if (Extensions != null && ! Extensions.IsEmpty())
             {
-                result.Add("extensions", extensions.ToJObject(version));
+                result.Add("extensions", Extensions.ToJObject(version));
             }
 
             return result;

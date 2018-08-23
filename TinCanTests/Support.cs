@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -19,70 +20,90 @@ namespace TinCanTests
     using System.Collections.Generic;
     using TinCan;
 
-    static class Support
+    internal static class Support
     {
-        public static Agent agent;
-        public static Verb verb;
-        public static Activity activity;
-        public static Activity parent;
-        public static Context context;
-        public static Result result;
-        public static Score score;
-        public static StatementRef statementRef;
-        public static SubStatement subStatement;
+        public static Agent Agent;
+        public static Verb Verb;
+        public static Activity Activity;
+        public static Activity Parent;
+        public static Context Context;
+        public static Result Result;
+        public static Score Score;
+        public static StatementRef StatementRef;
+        public static SubStatement SubStatement;
 
         static Support () {
-            agent = new Agent();
-            agent.mbox = "mailto:tincancsharp@tincanapi.com";
+            Agent = new Agent
+            {
+                Mbox = "mailto:tincancsharp@tincanapi.com"
+            };
 
-            verb = new Verb("http://adlnet.gov/expapi/verbs/experienced");
-            verb.display = new LanguageMap();
-            verb.display.Add("en-US", "experienced");
+            Verb = new Verb("http://adlnet.gov/expapi/verbs/experienced")
+            {
+                Display = new LanguageMap()
+            };
+            Verb.Display.Add("en-US", "experienced");
 
-            activity = new Activity();
-            activity.id = "http://tincanapi.com/TinCanCSharp/Test/Unit/0";
-            activity.definition = new ActivityDefinition();
-            activity.definition.type = new Uri("http://id.tincanapi.com/activitytype/unit-test");
-            activity.definition.name = new LanguageMap();
-            activity.definition.name.Add("en-US", "Tin Can C# Tests: Unit 0");
-            activity.definition.description = new LanguageMap();
-            activity.definition.description.Add("en-US", "Unit test 0 in the test suite for the Tin Can C# library.");
+            Activity = new Activity
+            {
+                Id = "http://tincanapi.com/TinCanCSharp/Test/Unit/0",
+                Definition = new ActivityDefinition
+                {
+                    Type = new Uri("http://id.tincanapi.com/activitytype/unit-test"),
+                    Name = new LanguageMap()
+                }
+            };
+            Activity.Definition.Name.Add("en-US", "Tin Can C# Tests: Unit 0");
+            Activity.Definition.Description =
+                new LanguageMap {{"en-US", "Unit test 0 in the test suite for the Tin Can C# library."}};
 
-            parent = new Activity();
-            parent.id = "http://tincanapi.com/TinCanCSharp/Test";
-            parent.definition = new ActivityDefinition();
-            parent.definition.type = new Uri("http://id.tincanapi.com/activitytype/unit-test-suite");
-            //parent.definition.moreInfo = new Uri("http://rusticisoftware.github.io/TinCanCSharp/");
-            parent.definition.name = new LanguageMap();
-            parent.definition.name.Add("en-US", "Tin Can C# Tests");
-            parent.definition.description = new LanguageMap();
-            parent.definition.description.Add("en-US", "Unit test suite for the Tin Can C# library.");
+            Parent = new Activity
+            {
+                Id = "http://tincanapi.com/TinCanCSharp/Test",
+                Definition = new ActivityDefinition
+                {
+                    Type = new Uri("http://id.tincanapi.com/activitytype/unit-test-suite"),
+                    Name = new LanguageMap()
+                }
+            };
+            Parent.Definition.Name.Add("en-US", "Tin Can C# Tests");
+            Parent.Definition.Description = new LanguageMap {{"en-US", "Unit test suite for the Tin Can C# library."}};
 
-            statementRef = new StatementRef(Guid.NewGuid());
+            StatementRef = new StatementRef(Guid.NewGuid());
 
-            context = new Context();
-            context.registration = Guid.NewGuid();
-            context.statement = statementRef;
-            context.contextActivities = new ContextActivities();
-            context.contextActivities.parent = new List<Activity>();
-            context.contextActivities.parent.Add(parent);
+            Context = new Context
+            {
+                Registration = Guid.NewGuid(),
+                Statement = StatementRef,
+                ContextActivities = new ContextActivities
+                {
+                    Parent = new List<Activity>()
+                }
+            };
+            Context.ContextActivities.Parent.Add(Parent);
 
-            score = new Score();
-            score.raw = 97;
-            score.scaled = 0.97;
-            score.max = 100;
-            score.min = 0;
+            Score = new Score
+            {
+                Raw = 97,
+                Scaled = 0.97,
+                Max = 100,
+                Min = 0
+            };
 
-            result = new Result();
-            result.score = score;
-            result.success = true;
-            result.completion = true;
-            result.duration = new TimeSpan(1, 2, 16, 43);
+            Result = new Result
+            {
+                Score = Score,
+                Success = true,
+                Completion = true,
+                Duration = new TimeSpan(1, 2, 16, 43)
+            };
 
-            subStatement = new SubStatement();
-            subStatement.actor = agent;
-            subStatement.verb = verb;
-            subStatement.target = parent;
+            SubStatement = new SubStatement
+            {
+                Actor = Agent,
+                Verb = Verb,
+                Target = Parent
+            };
         }
     }
 }

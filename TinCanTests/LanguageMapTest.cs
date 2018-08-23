@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,17 +16,16 @@
 */
 namespace TinCanTests
 {
-    using System;
     using NUnit.Framework;
     using TinCan;
 
     [TestFixture]
-    class LanguageMapTest
+    internal class LanguageMapTest
     {
         [Test]
         public void TestEmptyCtr()
         {
-            LanguageMap obj = new LanguageMap();
+            var obj = new LanguageMap();
             Assert.IsInstanceOf<LanguageMap>(obj);
         }
     }

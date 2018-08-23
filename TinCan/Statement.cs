@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,60 +23,60 @@ namespace TinCan
     public class Statement : StatementBase
     {
         // TODO: put in common location
-        private const String ISODateTimeFormat = "o";
+        private const string IsoDateTimeFormat = "o";
 
-        public Nullable<Guid> id { get; set; }
-        public Nullable<DateTime> stored { get; set; }
-        public Agent authority { get; set; }
-        public TCAPIVersion version { get; set; }
+        public Guid? Id { get; set; }
+        public DateTime? Stored { get; set; }
+        public Agent Authority { get; set; }
+        public TCAPIVersion Version { get; set; }
         //public List<Attachment> attachments { get; set; }
 
         public Statement() : base() { }
-        public Statement(StringOfJSON json) : this(json.toJObject()) { }
+        public Statement(StringOfJson json) : this(json.ToJObject()) { }
 
         public Statement(JObject jobj) : base(jobj) {
             if (jobj["id"] != null)
             {
-                id = new Guid(jobj.Value<String>("id"));
+                Id = new Guid(jobj.Value<string>("id"));
             }
             if (jobj["stored"] != null)
             {
-                stored = jobj.Value<DateTime>("stored");
+                Stored = jobj.Value<DateTime>("stored");
             }
             if (jobj["authority"] != null)
             {
-                authority = (Agent)jobj.Value<JObject>("authority");
+                Authority = (Agent)jobj.Value<JObject>("authority");
             }
             if (jobj["version"] != null)
             {
-                version = (TCAPIVersion)jobj.Value<String>("version");
+                Version = (TCAPIVersion)jobj.Value<string>("version");
             }
 
             //
             // handle SubStatement as target which isn't provided by StatementBase
             // because SubStatements are not allowed to nest
             //
-            if (jobj["object"] != null && (String)jobj["object"]["objectType"] == SubStatement.OBJECT_TYPE)
+            if (jobj["object"] != null && (string)jobj["object"]["objectType"] == SubStatement.OBJECT_TYPE)
             {
-                target = (SubStatement)jobj.Value<JObject>("object");
+                Target = (SubStatement)jobj.Value<JObject>("object");
             }
         }
 
         public override JObject ToJObject(TCAPIVersion version)
         {
-            JObject result = base.ToJObject(version);
+            var result = base.ToJObject(version);
 
-            if (id != null)
+            if (Id != null)
             {
-                result.Add("id", id.ToString());
+                result.Add("id", Id.ToString());
             }
-            if (stored != null)
+            if (Stored != null)
             {
-                result.Add("stored", stored.Value.ToString(ISODateTimeFormat));
+                result.Add("stored", Stored.Value.ToString(IsoDateTimeFormat));
             }
-            if (authority != null)
+            if (Authority != null)
             {
-                result.Add("authority", authority.ToJObject(version));
+                result.Add("authority", Authority.ToJObject(version));
             }
             if (version != null)
             {
@@ -87,13 +88,13 @@ namespace TinCan
 
         public void Stamp()
         {
-            if (id == null)
+            if (Id == null)
             {
-                id = Guid.NewGuid();
+                Id = Guid.NewGuid();
             }
-            if (timestamp == null)
+            if (Timestamp == null)
             {
-                timestamp = DateTime.UtcNow;
+                Timestamp = DateTime.UtcNow;
             }
         }
     }

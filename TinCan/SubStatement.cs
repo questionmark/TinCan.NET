@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -13,20 +14,20 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-using System;
+
 using Newtonsoft.Json.Linq;
 using TinCan.Json;
 
 namespace TinCan
 {
-    public class SubStatement : StatementBase, StatementTarget
+    public class SubStatement : StatementBase, IStatementTarget
     {
-        public static readonly String OBJECT_TYPE = "SubStatement";
-        public String ObjectType { get { return OBJECT_TYPE; } }
+        public static readonly string OBJECT_TYPE = "SubStatement";
+        public string ObjectType => OBJECT_TYPE;
 
         public SubStatement() {}
 
-        public SubStatement(StringOfJSON json): this(json.toJObject()) {}
+        public SubStatement(StringOfJson json): this(json.ToJObject()) {}
 
         public SubStatement(JObject jobj) : base(jobj) { }
 

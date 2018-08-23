@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -14,10 +15,10 @@
     limitations under the License.
 */
 
-namespace TinCan.LRSResponses
+namespace TinCan.LrsResponses
 {
-    public class StatementsResultLRSResponse : LRSResponse
+    public class StatementsResultLrsResponse : LrsResponse
     {
-        public TinCan.StatementsResult content { set; get; }
+        public StatementsResult Content { set; get; }
     }
 }

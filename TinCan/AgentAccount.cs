@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,41 +23,41 @@ namespace TinCan
     public class AgentAccount : JsonModel
     {
         // TODO: check to make sure is absolute?
-        public Uri homePage { get; set; }
-        public String name { get; set; }
+        public Uri HomePage { get; set; }
+        public string Name { get; set; }
 
         public AgentAccount() { }
 
-        public AgentAccount(StringOfJSON json) : this(json.toJObject()) { }
+        public AgentAccount(StringOfJson json) : this(json.ToJObject()) { }
 
         public AgentAccount(JObject jobj)
         {
             if (jobj["homePage"] != null)
             {
-                homePage = new Uri(jobj.Value<String>("homePage"));
+                HomePage = new Uri(jobj.Value<string>("homePage"));
             }
             if (jobj["name"] != null)
             {
-                name = jobj.Value<String>("name");
+                Name = jobj.Value<string>("name");
             }
         }
 
-        public AgentAccount(Uri homePage, String name)
+        public AgentAccount(Uri homePage, string name)
         {
-            this.homePage = homePage;
-            this.name = name;
+            HomePage = homePage;
+            Name = name;
         }
 
         public override JObject ToJObject(TCAPIVersion version)
         {
-            JObject result = new JObject();
-            if (homePage != null)
+            var result = new JObject();
+            if (HomePage != null)
             {
-                result.Add("homePage", homePage.ToString());
+                result.Add("homePage", HomePage.ToString());
             }
-            if (name != null)
+            if (Name != null)
             {
-                result.Add("name", name);
+                result.Add("name", Name);
             }
 
             return result;

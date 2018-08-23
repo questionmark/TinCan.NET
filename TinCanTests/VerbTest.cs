@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,49 +16,50 @@
 */
 namespace TinCanTests
 {
-    using System;
     using NUnit.Framework;
     using Newtonsoft.Json.Linq;
     using TinCan;
     using TinCan.Json;
 
     [TestFixture]
-    class VerbTest
+    internal class VerbTest
     {
         [Test]
         public void TestEmptyCtr()
         {
-            Verb obj = new Verb();
+            var obj = new Verb();
             Assert.IsInstanceOf<Verb>(obj);
-            Assert.IsNull(obj.id);
-            Assert.IsNull(obj.display);
+            Assert.IsNull(obj.Id);
+            Assert.IsNull(obj.Display);
 
-            StringAssert.AreEqualIgnoringCase("{}", obj.ToJSON());
+            StringAssert.AreEqualIgnoringCase("{}", obj.ToJson());
         }
 
         [Test]
         public void TestJObjectCtr()
         {
-            String id = "http://adlnet.gov/expapi/verbs/experienced";
+            var id = "http://adlnet.gov/expapi/verbs/experienced";
 
-            JObject cfg = new JObject();
-            cfg.Add("id", id);
+            var cfg = new JObject
+            {
+                { "id", id }
+            };
 
-            Verb obj = new Verb(cfg);
+            var obj = new Verb(cfg);
             Assert.IsInstanceOf<Verb>(obj);
-            Assert.That(obj.ToJSON(), Is.EqualTo("{\"id\":\"" + id + "\"}"));
+            Assert.That(obj.ToJson(), Is.EqualTo("{\"id\":\"" + id + "\"}"));
         }
 
         [Test]
-        public void TestStringOfJSONCtr()
+        public void TestStringOfJsonCtr()
         {
-            String id = "http://adlnet.gov/expapi/verbs/experienced";
-            String json = "{\"id\":\"" + id + "\"}";
-            StringOfJSON strOfJson = new StringOfJSON(json);
+            var id = "http://adlnet.gov/expapi/verbs/experienced";
+            var json = "{\"id\":\"" + id + "\"}";
+            var strOfJson = new StringOfJson(json);
 
-            Verb obj = new Verb(strOfJson);
+            var obj = new Verb(strOfJson);
             Assert.IsInstanceOf<Verb>(obj);
-            Assert.That(obj.ToJSON(), Is.EqualTo(json));
+            Assert.That(obj.ToJson(), Is.EqualTo(json));
         }
     }
 }

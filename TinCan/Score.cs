@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -13,7 +14,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-using System;
+
 using Newtonsoft.Json.Linq;
 using TinCan.Json;
 
@@ -21,53 +22,53 @@ namespace TinCan
 {
     public class Score : JsonModel
     {
-        public Nullable<Double> scaled { get; set; }
-        public Nullable<Double> raw { get; set; }
-        public Nullable<Double> min { get; set; }
-        public Nullable<Double> max { get; set; }
+        public double? Scaled { get; set; }
+        public double? Raw { get; set; }
+        public double? Min { get; set; }
+        public double? Max { get; set; }
 
         public Score() {}
 
-        public Score(StringOfJSON json): this(json.toJObject()) {}
+        public Score(StringOfJson json): this(json.ToJObject()) {}
 
         public Score(JObject jobj)
         {
             if (jobj["scaled"] != null)
             {
-                scaled = jobj.Value<Double>("scaled");
+                Scaled = jobj.Value<double>("scaled");
             }
             if (jobj["raw"] != null)
             {
-                raw = jobj.Value<Double>("raw");
+                Raw = jobj.Value<double>("raw");
             }
             if (jobj["min"] != null)
             {
-                min = jobj.Value<Double>("min");
+                Min = jobj.Value<double>("min");
             }
             if (jobj["max"] != null)
             {
-                max = jobj.Value<Double>("max");
+                Max = jobj.Value<double>("max");
             }
         }
 
         public override JObject ToJObject(TCAPIVersion version) {
-            JObject result = new JObject();
+            var result = new JObject();
 
-            if (scaled != null)
+            if (Scaled != null)
             {
-                result.Add("scaled", scaled);
+                result.Add("scaled", Scaled);
             }
-            if (raw != null)
+            if (Raw != null)
             {
-                result.Add("raw", raw);
+                result.Add("raw", Raw);
             }
-            if (min != null)
+            if (Min != null)
             {
-                result.Add("min", min);
+                result.Add("min", Min);
             }
-            if (max != null)
+            if (Max != null)
             {
-                result.Add("max", max);
+                result.Add("max", Max);
             }
 
             return result;

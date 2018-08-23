@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,23 +16,22 @@
 */
 namespace TinCanTests
 {
-    using System;
     using NUnit.Framework;
     using Newtonsoft.Json.Linq;
     using TinCan;
     using TinCan.Json;
 
     [TestFixture]
-    class AgentTest
+    internal class AgentTest
     {
         [Test]
         public void TestEmptyCtr()
         {
             var obj = new Agent();
             Assert.IsInstanceOf<Agent>(obj);
-            Assert.IsNull(obj.mbox);
+            Assert.IsNull(obj.Mbox);
 
-            StringAssert.AreEqualIgnoringCase("{\"objectType\":\"Agent\"}", obj.ToJSON());
+            StringAssert.AreEqualIgnoringCase("{\"objectType\":\"Agent\"}", obj.ToJson());
         }
 
         [Test]
@@ -39,25 +39,27 @@ namespace TinCanTests
         {
             var mbox = "mailto:tincancsharp@tincanapi.com";
 
-            var cfg = new JObject();
-            cfg.Add("mbox", mbox);
+            var cfg = new JObject
+            {
+                { "mbox", mbox }
+            };
 
             var obj = new Agent(cfg);
             Assert.IsInstanceOf<Agent>(obj);
-            Assert.That(obj.mbox, Is.EqualTo(mbox));
+            Assert.That(obj.Mbox, Is.EqualTo(mbox));
         }
 
         [Test]
-        public void TestStringOfJSONCtr()
+        public void TestStringOfJsonCtr()
         {
             var mbox = "mailto:tincancsharp@tincanapi.com";
 
             var json = "{\"mbox\":\"" + mbox + "\"}";
-            var strOfJson = new StringOfJSON(json);
+            var strOfJson = new StringOfJson(json);
 
             var obj = new Agent(strOfJson);
             Assert.IsInstanceOf<Agent>(obj);
-            Assert.That(obj.mbox, Is.EqualTo(mbox));
+            Assert.That(obj.Mbox, Is.EqualTo(mbox));
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -19,24 +20,24 @@ namespace TinCanTests
     using TinCan;
 
     [TestFixture]
-    class ActivityTest
+    internal class ActivityTest
     {
         [Test]
         public void TestActivityIdTrailingSlash()
         {
             var activity = new Activity();
-            string noTrailingSlash = "http://foo";
-            activity.id = noTrailingSlash;
-            Assert.AreEqual(noTrailingSlash, activity.id);
+            var noTrailingSlash = "http://foo";
+            activity.Id = noTrailingSlash;
+            Assert.AreEqual(noTrailingSlash, activity.Id);
         }
 
         [Test]
         public void TestActivityIdCase()
         {
             var activity = new Activity();
-            string mixedCase = "http://fOO";
-            activity.id = mixedCase;
-            Assert.AreEqual(mixedCase, activity.id);
+            var mixedCase = "http://fOO";
+            activity.Id = mixedCase;
+            Assert.AreEqual(mixedCase, activity.Id);
         }
 
         [Test]
@@ -46,8 +47,8 @@ namespace TinCanTests
                 () =>
                 {
                     var activity = new Activity();
-                    string invalid = "foo";
-                    activity.id = invalid;
+                    var invalid = "foo";
+                    activity.Id = invalid;
                 }
             );
         }

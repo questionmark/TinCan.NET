@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -18,89 +19,98 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json.Linq;
 using TinCan.Documents;
-using TinCan.LRSResponses;
+using TinCan.LrsResponses;
 
 namespace TinCan
 {
-    public class RemoteLRS : ILRS
+    public class RemoteLrs : ILrs
     {
-        public Uri endpoint { get; set; }
-        public TCAPIVersion version { get; set; }
-        public String auth { get; set; }
-        public Dictionary<String, String> extended { get; set; }
+        public Uri Endpoint { get; set; }
+        public TCAPIVersion Version { get; set; }
+        public string Auth { get; set; }
+        public Dictionary<string, string> Extended { get; set; }
 
-        public void SetAuth(String username, String password)
+        public void SetAuth(string username, string password)
         {
-            auth = "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(username + ":" + password));
+            Auth = "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(username + ":" + password));
         }
 
-        public RemoteLRS() { }
-        public RemoteLRS(Uri endpoint, TCAPIVersion version, String username, String password)
+        public RemoteLrs() { }
+        public RemoteLrs(Uri endpoint, TCAPIVersion version, string username, string password)
         {
-            this.endpoint = endpoint;
-            this.version = version;
-            this.SetAuth(username, password);
+            Endpoint = endpoint;
+            Version = version;
+            SetAuth(username, password);
         }
-        public RemoteLRS(String endpoint, TCAPIVersion version, String username, String password) : this(new Uri(endpoint), version, username, password) { }
-        public RemoteLRS(String endpoint, String username, String password) : this(endpoint, TCAPIVersion.latest(), username, password) { }
+        public RemoteLrs(string endpoint, TCAPIVersion version, string username, string password) : this(new Uri(endpoint), version, username, password) { }
+        public RemoteLrs(string endpoint, string username, string password) : this(endpoint, TCAPIVersion.Latest(), username, password) { }
 
-        private class MyHTTPRequest
+        private class MyHttpRequest
         {
-            public String method { get; set; }
-            public String resource { get; set; }
-            public Dictionary<String, String> queryParams { get; set; }
-            public Dictionary<String, String> headers { get; set; }
-            public String contentType { get; set; }
-            public byte[] content { get; set; }
+            public string Method { get; set; }
+            public string Resource { get; set; }
+            public Dictionary<string, string> QueryParams { get; set; }
+            public Dictionary<string, string> Headers { get; set; }
+            public string ContentType { get; set; }
+            public byte[] Content { get; set; }
         }
 
-        private class MyHTTPResponse
+        private class MyHttpResponse
         {
-            public HttpStatusCode status { get; set; }
-            public String contentType { get; set; }
-            public byte[] content { get; set; }
-            public DateTime lastModified { get; set; }
-            public String etag { get; set; }
-            public Exception ex { get; set; }
+            public HttpStatusCode Status { get; }
+            public string ContentType { get; }
+            public byte[] Content { get; set; }
+            public DateTime LastModified { get; }
+            public string Etag { get; }
+            public Exception Ex { get; set; }
 
-            public MyHTTPResponse() { }
-            public MyHTTPResponse(HttpWebResponse webResp)
+            public MyHttpResponse() { }
+            public MyHttpResponse(HttpWebResponse webResp)
             {
-                status = webResp.StatusCode;
-                contentType = webResp.ContentType;
-                etag = webResp.Headers.Get("Etag");
-                lastModified = webResp.LastModified;
+                Status = webResp.StatusCode;
+                ContentType = webResp.ContentType;
+                Etag = webResp.Headers.Get("Etag");
+
+                try
+                {
+                    LastModified = webResp.LastModified;
+                }
+                catch
+                {
+                    //sometimes will throw an exception, just ignore
+                }
 
                 using (var stream = webResp.GetResponseStream())
                 {
-                    content = ReadFully(stream, (int)webResp.ContentLength);
+                    Content = ReadFully(stream, (int)webResp.ContentLength);
                 }
             }
         }
 
-        private MyHTTPResponse MakeSyncRequest(MyHTTPRequest req)
+        private async Task<MyHttpResponse> MakeRequest(MyHttpRequest req)
         {
-            String url;
-            if (req.resource.StartsWith("http", StringComparison.InvariantCultureIgnoreCase))
+            string url;
+            if (req.Resource.StartsWith("http", StringComparison.InvariantCultureIgnoreCase))
             {
-                url = req.resource;
+                url = req.Resource;
             }
             else
             {
-                url = endpoint.ToString();
-                if (! url.EndsWith("/") && ! req.resource.StartsWith("/")) {
+                url = Endpoint.ToString();
+                if (! url.EndsWith("/") && ! req.Resource.StartsWith("/")) {
                     url += "/";
                 }
-                url += req.resource;
+                url += req.Resource;
             }
 
-            if (req.queryParams != null)
+            if (req.QueryParams != null)
             {
-                String qs = "";
-                foreach (KeyValuePair<String, String> entry in req.queryParams)
+                var qs = "";
+                foreach (var entry in req.QueryParams)
                 {
                     if (qs != "")
                     {
@@ -116,46 +126,40 @@ namespace TinCan
 
             // TODO: handle special properties we recognize, such as content type, modified since, etc.
             var webReq = (HttpWebRequest)WebRequest.Create(url);
-            webReq.Method = req.method;
+            webReq.Method = req.Method;
 
-            webReq.Headers.Add("X-Experience-API-Version", version.ToString());
-            if (auth != null)
+            webReq.Headers.Add("X-Experience-API-Version", Version.ToString());
+            if (Auth != null)
             {
-                webReq.Headers.Add("Authorization", auth);
+                webReq.Headers.Add("Authorization", Auth);
             }
-            if (req.headers != null)
+            if (req.Headers != null)
             {
-                foreach (KeyValuePair<String, String> entry in req.headers)
+                foreach (var entry in req.Headers)
                 {
                     webReq.Headers.Add(entry.Key, entry.Value);
                 }
             }
 
-            if (req.contentType != null)
-            {
-                webReq.ContentType = req.contentType;
-            }
-            else
-            {
-                webReq.ContentType = "application/octet-stream";
-            }
+            webReq.ContentType = req.ContentType ?? "application/octet-stream";
 
-            if (req.content != null)
+            if (req.Content != null)
             {
-                webReq.ContentLength = req.content.Length;
+                webReq.ContentLength = req.Content.Length;
                 using (var stream = webReq.GetRequestStream())
                 {
-                    stream.Write(req.content, 0, req.content.Length);
+                    stream.Write(req.Content, 0, req.Content.Length);
                 }
             }
 
-            MyHTTPResponse resp;
+            MyHttpResponse resp;
 
             try
             {
-                using (var webResp = (HttpWebResponse)webReq.GetResponse())
+                using (var webResp = await webReq.GetResponseAsync())
                 {
-                    resp = new MyHTTPResponse(webResp);
+                    var test = webResp as HttpWebResponse;
+                    resp = new MyHttpResponse(test);
                 }
             }
             catch (WebException ex)
@@ -164,15 +168,17 @@ namespace TinCan
                 {
                     using (var webResp = (HttpWebResponse)ex.Response)
                     {
-                        resp = new MyHTTPResponse(webResp);
+                        resp = new MyHttpResponse(webResp);
                     }
                 }
                 else
                 {
-                    resp = new MyHTTPResponse();
-                    resp.content = Encoding.UTF8.GetBytes("Web exception without '.Response'");
+                    resp = new MyHttpResponse
+                    {
+                        Content = Encoding.UTF8.GetBytes("Web exception without '.Response'")
+                    };
                 }
-                resp.ex = ex;
+                resp.Ex = ex;
             }
 
             return resp;
@@ -196,8 +202,8 @@ namespace TinCan
                 initialLength = 32768;
             }
 
-            byte[] buffer = new byte[initialLength];
-            int read = 0;
+            var buffer = new byte[initialLength];
+            var read = 0;
 
             int chunk;
             while ((chunk = stream.Read(buffer, read, buffer.Length - read)) > 0)
@@ -208,7 +214,7 @@ namespace TinCan
                 // any more information
                 if (read == buffer.Length)
                 {
-                    int nextByte = stream.ReadByte();
+                    var nextByte = stream.ReadByte();
 
                     // End of stream? If so, we're done
                     if (nextByte == -1)
@@ -218,7 +224,7 @@ namespace TinCan
 
                     // Nope. Resize the buffer, put in the byte we've just
                     // read, and continue
-                    byte[] newBuffer = new byte[buffer.Length * 2];
+                    var newBuffer = new byte[buffer.Length * 2];
                     Array.Copy(buffer, newBuffer, buffer.Length);
                     newBuffer[read] = (byte)nextByte;
                     buffer = newBuffer;
@@ -226,506 +232,581 @@ namespace TinCan
                 }
             }
             // Buffer is now too big. Shrink it.
-            byte[] ret = new byte[read];
+            var ret = new byte[read];
             Array.Copy(buffer, ret, read);
             return ret;
         }
 
-        private MyHTTPResponse GetDocument(String resource, Dictionary<String, String> queryParams, Document document)
+        private async Task<MyHttpResponse> GetDocument(string resource, Dictionary<string, string> queryParams, Document document)
         {
-            var req = new MyHTTPRequest();
-            req.method = "GET";
-            req.resource = resource;
-            req.queryParams = queryParams;
-
-            var res = MakeSyncRequest(req);
-            if (res.status == HttpStatusCode.OK)
+            var req = new MyHttpRequest
             {
-                document.content = res.content;
-                document.contentType = res.contentType;
-                document.timestamp = res.lastModified;
-                document.etag = res.etag;
+                Method = "GET",
+                Resource = resource,
+                QueryParams = queryParams,
+                ContentType = "application/json"
+            };
+
+            var res = await MakeRequest(req);
+            if (res.Status == HttpStatusCode.OK)
+            {
+                document.Content = res.Content;
+                document.ContentType = res.ContentType;
+                document.Timestamp = res.LastModified;
+                document.Etag = res.Etag;
             }
 
             return res;
         }
 
-        private ProfileKeysLRSResponse GetProfileKeys(String resource, Dictionary<String, String> queryParams)
+        private async Task<ProfileKeysLrsResponse> GetProfileKeys(string resource, Dictionary<string, string> queryParams)
         {
-            var r = new ProfileKeysLRSResponse();
+            var r = new ProfileKeysLrsResponse();
 
-            var req = new MyHTTPRequest();
-            req.method = "GET";
-            req.resource = resource;
-            req.queryParams = queryParams;
-
-            var res = MakeSyncRequest(req);
-            if (res.status != HttpStatusCode.OK)
+            var req = new MyHttpRequest
             {
-                r.success = false;
-                r.httpException = res.ex;
-                r.SetErrMsgFromBytes(res.content);
+                Method = "GET",
+                Resource = resource,
+                QueryParams = queryParams
+            };
+
+            var res = await MakeRequest(req);
+            if (res.Status != HttpStatusCode.OK)
+            {
+                r.Success = false;
+                r.HttpException = res.Ex;
+                r.SetErrMsgFromBytes(res.Content);
                 return r;
             }
 
-            r.success = true;
+            r.Success = true;
 
-            var keys = JArray.Parse(Encoding.UTF8.GetString(res.content));
+            var keys = JArray.Parse(Encoding.UTF8.GetString(res.Content));
             if (keys.Count > 0) {
-                r.content = new List<String>();
-                foreach (JToken key in keys) {
-                    r.content.Add((String)key);
+                r.Content = new List<string>();
+                foreach (var key in keys) {
+                    r.Content.Add((string)key);
                 }
             }
 
             return r;
         }
 
-        private LRSResponse SaveDocument(String resource, Dictionary<String, String> queryParams, Document document)
+        private async Task<LrsResponse> SaveDocument(string resource, Dictionary<string, string> queryParams, Document document)
         {
-            var r = new LRSResponse();
+            var r = new LrsResponse();
 
-            var req = new MyHTTPRequest();
-            req.method = "PUT";
-            req.resource = resource;
-            req.queryParams = queryParams;
-            req.contentType = document.contentType;
-            req.content = document.content;
-
-            var res = MakeSyncRequest(req);
-            if (res.status != HttpStatusCode.NoContent)
+            var req = new MyHttpRequest
             {
-                r.success = false;
-                r.httpException = res.ex;
-                r.SetErrMsgFromBytes(res.content);
-                return r;
-            }
-
-            r.success = true;
-
-            return r;
-        }
-
-        private LRSResponse DeleteDocument(String resource, Dictionary<String, String> queryParams)
-        {
-            var r = new LRSResponse();
-
-            var req = new MyHTTPRequest();
-            req.method = "DELETE";
-            req.resource = resource;
-            req.queryParams = queryParams;
-
-            var res = MakeSyncRequest(req);
-            if (res.status != HttpStatusCode.NoContent)
+                Method = "PUT",
+                Resource = resource,
+                QueryParams = queryParams,
+                ContentType = document.ContentType,
+                Content = document.Content
+            };
+            if (!string.IsNullOrEmpty(document.Etag))
             {
-                r.success = false;
-                r.httpException = res.ex;
-                r.SetErrMsgFromBytes(res.content);
-                return r;
-            }
-
-            r.success = true;
-
-            return r;
-        }
-
-        private StatementLRSResponse GetStatement(Dictionary<String, String> queryParams)
-        {
-            var r = new StatementLRSResponse();
-
-            var req = new MyHTTPRequest();
-            req.method = "GET";
-            req.resource = "statements";
-            req.queryParams = queryParams;
-
-            var res = MakeSyncRequest(req);
-            if (res.status != HttpStatusCode.OK)
-            {
-                r.success = false;
-                r.httpException = res.ex;
-                r.SetErrMsgFromBytes(res.content);
-                return r;
-            }
-
-            r.success = true;
-            r.content = new Statement(new Json.StringOfJSON(Encoding.UTF8.GetString(res.content)));
-
-            return r;
-        }
-
-        public AboutLRSResponse About()
-        {
-            var r = new AboutLRSResponse();
-
-            var req = new MyHTTPRequest();
-            req.method = "GET";
-            req.resource = "about";
-
-            var res = MakeSyncRequest(req);
-            if (res.status != HttpStatusCode.OK)
-            {
-                r.success = false;
-                r.httpException = res.ex;
-                r.SetErrMsgFromBytes(res.content);
-                return r;
-            }
-
-            r.success = true;
-            r.content = new About(Encoding.UTF8.GetString(res.content));
-
-            return r;
-        }
-
-        public StatementLRSResponse SaveStatement(Statement statement)
-        {
-            var r = new StatementLRSResponse();
-            var req = new MyHTTPRequest();
-            req.queryParams = new Dictionary<String, String>();
-            req.resource = "statements";
-
-            if (statement.id == null)
-            {
-                req.method = "POST";
+                req.Headers = new Dictionary<string, string> {{"If-Match", document.Etag}};
             }
             else
             {
-                req.method = "PUT";
-                req.queryParams.Add("statementId", statement.id.ToString());
+                req.Headers = new Dictionary<string, string> {{"If-None-Match", "*"}};
             }
+            
 
-            req.contentType = "application/json";
-            req.content = Encoding.UTF8.GetBytes(statement.ToJSON(version));
-
-            var res = MakeSyncRequest(req);
-            if (statement.id == null)
+            var res = await MakeRequest(req);
+            if (res.Status != HttpStatusCode.NoContent)
             {
-                if (res.status != HttpStatusCode.OK)
-                {
-                    r.success = false;
-                    r.httpException = res.ex;
-                    r.SetErrMsgFromBytes(res.content);
-                    return r;
-                }
-
-                var ids = JArray.Parse(Encoding.UTF8.GetString(res.content));
-                statement.id = new Guid((String)ids[0]);
-            }
-            else {
-                if (res.status != HttpStatusCode.NoContent)
-                {
-                    r.success = false;
-                    r.httpException = res.ex;
-                    r.SetErrMsgFromBytes(res.content);
-                    return r;
-                }
+                r.Success = false;
+                r.HttpException = res.Ex;
+                r.SetErrMsgFromBytes(res.Content);
+                return r;
             }
 
-            r.success = true;
-            r.content = statement;
+            r.Success = true;
 
             return r;
         }
-        public StatementLRSResponse VoidStatement(Guid id, Agent agent)
+
+        private async Task<LrsResponse> DeleteDocument(string resource, Dictionary<string, string> queryParams)
+        {
+            var r = new LrsResponse();
+
+            var req = new MyHttpRequest
+            {
+                Method = "DELETE",
+                Resource = resource,
+                QueryParams = queryParams
+            };
+
+            var res = await MakeRequest(req);
+            if (res.Status != HttpStatusCode.NoContent)
+            {
+                r.Success = false;
+                r.HttpException = res.Ex;
+                r.SetErrMsgFromBytes(res.Content);
+                return r;
+            }
+
+            r.Success = true;
+
+            return r;
+        }
+
+        private async Task<StatementLrsResponse> GetStatement(Dictionary<string, string> queryParams)
+        {
+            var r = new StatementLrsResponse();
+
+            var req = new MyHttpRequest
+            {
+                Method = "GET",
+                Resource = "statements",
+                QueryParams = queryParams
+            };
+
+            var res = await MakeRequest(req);
+            if (res.Status != HttpStatusCode.OK)
+            {
+                r.Success = false;
+                r.HttpException = res.Ex;
+                r.SetErrMsgFromBytes(res.Content);
+                return r;
+            }
+
+            r.Success = true;
+            r.Content = new Statement(new Json.StringOfJson(Encoding.UTF8.GetString(res.Content)));
+
+            return r;
+        }
+
+        public async Task<AboutLrsResponse> AboutAsync()
+        {
+            var r = new AboutLrsResponse();
+
+            var req = new MyHttpRequest
+            {
+                Method = "GET",
+                Resource = "about"
+            };
+
+            var res = await MakeRequest(req);
+            if (res.Status != HttpStatusCode.OK)
+            {
+                r.Success = false;
+                r.HttpException = res.Ex;
+                r.SetErrMsgFromBytes(res.Content);
+                return r;
+            }
+
+            r.Success = true;
+            r.Content = new About(Encoding.UTF8.GetString(res.Content));
+
+            return r;
+        }
+
+        public async Task<StatementLrsResponse> SaveStatementAsync(Statement statement)
+        {
+            var r = new StatementLrsResponse();
+            var req = new MyHttpRequest
+            {
+                QueryParams = new Dictionary<string, string>(),
+                Resource = "statements"
+            };
+
+            if (statement.Id == null)
+            {
+                req.Method = "POST";
+            }
+            else
+            {
+                req.Method = "PUT";
+                req.QueryParams.Add("statementId", statement.Id.ToString());
+            }
+
+            req.ContentType = "application/json";
+            req.Content = Encoding.UTF8.GetBytes(statement.ToJson(Version));
+
+            var res = await MakeRequest(req);
+            if (statement.Id == null)
+            {
+                if (res.Status != HttpStatusCode.OK)
+                {
+                    r.Success = false;
+                    r.HttpException = res.Ex;
+                    r.SetErrMsgFromBytes(res.Content);
+                    return r;
+                }
+
+                var ids = JArray.Parse(Encoding.UTF8.GetString(res.Content));
+                statement.Id = new Guid((string)ids[0]);
+            }
+            else {
+                if (res.Status != HttpStatusCode.NoContent)
+                {
+                    r.Success = false;
+                    r.HttpException = res.Ex;
+                    r.SetErrMsgFromBytes(res.Content);
+                    return r;
+                }
+            }
+
+            r.Success = true;
+            r.Content = statement;
+
+            return r;
+        }
+        public async Task<StatementLrsResponse> VoidStatementAsync(Guid id, Agent agent)
         {
             var voidStatement = new Statement
             {
-                actor = agent,
-                verb = new Verb
+                Actor = agent,
+                Verb = new Verb
                 {
-                    id = new Uri("http://adlnet.gov/expapi/verbs/voided"),
-                    display = new LanguageMap()
+                    Id = new Uri("http://adlnet.gov/expapi/verbs/voided"),
+                    Display = new LanguageMap()
                 },
-                target = new StatementRef { id = id }
+                Target = new StatementRef { Id = id }
             };
-            voidStatement.verb.display.Add("en-US", "voided");
+            voidStatement.Verb.Display.Add("en-US", "voided");
 
-            return SaveStatement(voidStatement);
+            return await SaveStatementAsync(voidStatement);
         }
-        public StatementsResultLRSResponse SaveStatements(List<Statement> statements)
+        public async Task<StatementsResultLrsResponse> SaveStatementsAsync(List<Statement> statements)
         {
-            var r = new StatementsResultLRSResponse();
+            var r = new StatementsResultLrsResponse();
 
-            var req = new MyHTTPRequest();
-            req.resource = "statements";
-            req.method = "POST";
-            req.contentType = "application/json";
+            var req = new MyHttpRequest
+            {
+                Resource = "statements",
+                Method = "POST",
+                ContentType = "application/json"
+            };
 
             var jarray = new JArray();
-            foreach (Statement st in statements)
+            foreach (var st in statements)
             {
-                jarray.Add(st.ToJObject(version));
+                jarray.Add(st.ToJObject(Version));
             }
-            req.content = Encoding.UTF8.GetBytes(jarray.ToString());
+            req.Content = Encoding.UTF8.GetBytes(jarray.ToString());
 
-            var res = MakeSyncRequest(req);
-            if (res.status != HttpStatusCode.OK)
+            var res = await MakeRequest(req);
+            if (res.Status != HttpStatusCode.OK)
             {
-                r.success = false;
-                r.httpException = res.ex;
-                r.SetErrMsgFromBytes(res.content);
+                r.Success = false;
+                r.HttpException = res.Ex;
+                r.SetErrMsgFromBytes(res.Content);
                 return r;
             }
 
-            var ids = JArray.Parse(Encoding.UTF8.GetString(res.content));
-            for (int i = 0; i < ids.Count; i++)
+            var ids = JArray.Parse(Encoding.UTF8.GetString(res.Content));
+            for (var i = 0; i < ids.Count; i++)
             {
-                statements[i].id = new Guid((String)ids[i]);
+                statements[i].Id = new Guid((string)ids[i]);
             }
 
-            r.success = true;
-            r.content = new StatementsResult(statements);
+            r.Success = true;
+            r.Content = new StatementsResult(statements);
 
             return r;
         }
-        public StatementLRSResponse RetrieveStatement(Guid id)
+        public async Task<StatementLrsResponse> RetrieveStatementAsync(Guid id)
         {
-            var queryParams = new Dictionary<String, String>();
-            queryParams.Add("statementId", id.ToString());
-
-            return GetStatement(queryParams);
-        }
-        public StatementLRSResponse RetrieveVoidedStatement(Guid id)
-        {
-            var queryParams = new Dictionary<String, String>();
-            queryParams.Add("voidedStatementId", id.ToString());
-
-            return GetStatement(queryParams);
-        }
-        public StatementsResultLRSResponse QueryStatements(StatementsQuery query)
-        {
-            var r = new StatementsResultLRSResponse();
-
-            var req = new MyHTTPRequest();
-            req.method = "GET";
-            req.resource = "statements";
-            req.queryParams = query.ToParameterMap(version);
-
-            var res = MakeSyncRequest(req);
-            if (res.status != HttpStatusCode.OK)
+            var queryParams = new Dictionary<string, string>
             {
-                r.success = false;
-                r.httpException = res.ex;
-                r.SetErrMsgFromBytes(res.content);
+                { "statementId", id.ToString() }
+            };
+
+            return await GetStatement(queryParams);
+        }
+        public async Task<StatementLrsResponse> RetrieveVoidedStatementAsync(Guid id)
+        {
+            var queryParams = new Dictionary<string, string>
+            {
+                { "voidedStatementId", id.ToString() }
+            };
+
+            return await GetStatement(queryParams);
+        }
+        public async Task<StatementsResultLrsResponse> QueryStatementsAsync(StatementsQuery query)
+        {
+            var r = new StatementsResultLrsResponse();
+
+            var req = new MyHttpRequest
+            {
+                Method = "GET",
+                Resource = "statements",
+                QueryParams = query.ToParameterMap(Version)
+            };
+
+            var res = await MakeRequest(req);
+            if (res.Status != HttpStatusCode.OK)
+            {
+                r.Success = false;
+                r.HttpException = res.Ex;
+                r.SetErrMsgFromBytes(res.Content);
                 return r;
             }
 
-            r.success = true;
-            r.content = new StatementsResult(new Json.StringOfJSON(Encoding.UTF8.GetString(res.content)));
+            r.Success = true;
+            r.Content = new StatementsResult(new Json.StringOfJson(Encoding.UTF8.GetString(res.Content)));
 
             return r;
         }
-        public StatementsResultLRSResponse MoreStatements(StatementsResult result)
+        public async Task<StatementsResultLrsResponse> MoreStatementsAsync(StatementsResult result)
         {
-            var r = new StatementsResultLRSResponse();
+            var r = new StatementsResultLrsResponse();
 
-            var req = new MyHTTPRequest();
-            req.method = "GET";
-            req.resource = endpoint.GetLeftPart(UriPartial.Authority);
-            if (! req.resource.EndsWith("/")) {
-                req.resource += "/";
-            }
-            req.resource += result.more;
-
-            var res = MakeSyncRequest(req);
-            if (res.status != HttpStatusCode.OK)
+            var req = new MyHttpRequest
             {
-                r.success = false;
-                r.httpException = res.ex;
-                r.SetErrMsgFromBytes(res.content);
+                Method = "GET",
+                Resource = Endpoint.GetLeftPart(UriPartial.Authority)
+            };
+            if (! req.Resource.EndsWith("/")) {
+                req.Resource += "/";
+            }
+            req.Resource += result.More;
+
+            var res = await MakeRequest(req);
+            if (res.Status != HttpStatusCode.OK)
+            {
+                r.Success = false;
+                r.HttpException = res.Ex;
+                r.SetErrMsgFromBytes(res.Content);
                 return r;
             }
 
-            r.success = true;
-            r.content = new StatementsResult(new Json.StringOfJSON(Encoding.UTF8.GetString(res.content)));
+            r.Success = true;
+            var json = new Json.StringOfJson(Encoding.UTF8.GetString(res.Content));
+            r.Content = new StatementsResult(json);
 
             return r;
         }
 
         // TODO: since param
-        public ProfileKeysLRSResponse RetrieveStateIds(Activity activity, Agent agent, Nullable<Guid> registration = null)
+        public async Task<ProfileKeysLrsResponse> RetrieveStateIdsAsync(Activity activity, Agent agent,
+            Guid? registration = null)
         {
-            var queryParams = new Dictionary<String, String>();
-            queryParams.Add("activityId", activity.id.ToString());
-            queryParams.Add("agent", agent.ToJSON(version));
+            var queryParams = new Dictionary<string, string>
+            {
+                { "activityId", activity.Id },
+                { "agent", agent.ToJson(Version) }
+            };
             if (registration != null)
             {
                 queryParams.Add("registration", registration.ToString());
             }
 
-            return GetProfileKeys("activities/state", queryParams);
+            return await GetProfileKeys("activities/state", queryParams);
         }
-        public StateLRSResponse RetrieveState(String id, Activity activity, Agent agent, Nullable<Guid> registration = null)
+        public async Task<StateLrsResponse> RetrieveStateAsync(string id, Activity activity, Agent agent,
+            Guid? registration = null)
         {
-            var r = new StateLRSResponse();
+            var r = new StateLrsResponse();
 
-            var queryParams = new Dictionary<String, String>();
-            queryParams.Add("stateId", id);
-            queryParams.Add("activityId", activity.id.ToString());
-            queryParams.Add("agent", agent.ToJSON(version));
+            var queryParams = new Dictionary<string, string>
+            {
+                { "stateId", id },
+                { "activityId", activity.Id },
+                { "agent", agent.ToJson(Version) }
+            };
 
-            var state = new StateDocument();
-            state.id = id;
-            state.activity = activity;
-            state.agent = agent;
+            var state = new StateDocument
+            {
+                Id = id,
+                Activity = activity,
+                Agent = agent
+            };
 
             if (registration != null)
             {
                 queryParams.Add("registration", registration.ToString());
-                state.registration = registration;
+                state.Registration = registration;
             }
 
-            var resp = GetDocument("activities/state", queryParams, state);
-            if (resp.status != HttpStatusCode.OK && resp.status != HttpStatusCode.NotFound)
+            var resp = await GetDocument("activities/state", queryParams, state);
+            if (resp.Status != HttpStatusCode.OK && resp.Status != HttpStatusCode.NotFound)
             {
-                r.success = false;
-                r.httpException = resp.ex;
-                r.SetErrMsgFromBytes(resp.content);
+                r.Success = false;
+                r.HttpException = resp.Ex;
+                r.SetErrMsgFromBytes(resp.Content);
                 return r;
             }
-            r.success = true;
-            r.content = state;
+            r.Success = true;
+            r.Content = state;
 
             return r;
         }
-        public LRSResponse SaveState(StateDocument state)
+        public async Task<LrsResponse> SaveStateAsync(StateDocument state)
         {
-            var queryParams = new Dictionary<String, String>();
-            queryParams.Add("stateId", state.id);
-            queryParams.Add("activityId", state.activity.id.ToString());
-            queryParams.Add("agent", state.agent.ToJSON(version));
-            if (state.registration != null)
+            var queryParams = new Dictionary<string, string>
             {
-                queryParams.Add("registration", state.registration.ToString());
+                { "stateId", state.Id },
+                { "activityId", state.Activity.Id },
+                { "agent", state.Agent.ToJson(Version) }
+            };
+            if (state.Registration != null)
+            {
+                queryParams.Add("registration", state.Registration.ToString());
             }
 
-            return SaveDocument("activities/state", queryParams, state);
+            return await SaveDocument("activities/state", queryParams, state);
         }
-        public LRSResponse DeleteState(StateDocument state)
+        public async Task<LrsResponse> DeleteStateAsync(StateDocument state)
         {
-            var queryParams = new Dictionary<String, String>();
-            queryParams.Add("stateId", state.id);
-            queryParams.Add("activityId", state.activity.id.ToString());
-            queryParams.Add("agent", state.agent.ToJSON(version));
-            if (state.registration != null)
+            var queryParams = new Dictionary<string, string>
             {
-                queryParams.Add("registration", state.registration.ToString());
+                { "stateId", state.Id },
+                { "activityId", state.Activity.Id },
+                { "agent", state.Agent.ToJson(Version) }
+            };
+            if (state.Registration != null)
+            {
+                queryParams.Add("registration", state.Registration.ToString());
             }
 
-            return DeleteDocument("activities/state", queryParams);
+            return await DeleteDocument("activities/state", queryParams);
         }
-        public LRSResponse ClearState(Activity activity, Agent agent, Nullable<Guid> registration = null)
+        public async Task<LrsResponse> ClearStateAsync(Activity activity, Agent agent, Guid? registration = null)
         {
-            var queryParams = new Dictionary<String, String>();
-            queryParams.Add("activityId", activity.id.ToString());
-            queryParams.Add("agent", agent.ToJSON(version));
+            var queryParams = new Dictionary<string, string>
+            {
+                { "activityId", activity.Id },
+                { "agent", agent.ToJson(Version) }
+            };
             if (registration != null)
             {
                 queryParams.Add("registration", registration.ToString());
             }
 
-            return DeleteDocument("activities/state", queryParams);
+            return await DeleteDocument("activities/state", queryParams);
         }
 
         // TODO: since param
-        public ProfileKeysLRSResponse RetrieveActivityProfileIds(Activity activity)
+        public async Task<ProfileKeysLrsResponse> RetrieveActivityProfileIdsAsync(Activity activity)
         {
-            var queryParams = new Dictionary<String, String>();
-            queryParams.Add("activityId", activity.id.ToString());
-
-            return GetProfileKeys("activities/profile", queryParams);
-        }
-        public ActivityProfileLRSResponse RetrieveActivityProfile(String id, Activity activity)
-        {
-            var r = new ActivityProfileLRSResponse();
-
-            var queryParams = new Dictionary<String, String>();
-            queryParams.Add("profileId", id);
-            queryParams.Add("activityId", activity.id.ToString());
-
-            var profile = new ActivityProfileDocument();
-            profile.id = id;
-            profile.activity = activity;
-
-            var resp = GetDocument("activities/profile", queryParams, profile);
-            if (resp.status != HttpStatusCode.OK && resp.status != HttpStatusCode.NotFound)
+            var queryParams = new Dictionary<string, string>
             {
-                r.success = false;
-                r.httpException = resp.ex;
-                r.SetErrMsgFromBytes(resp.content);
+                { "activityId", activity.Id }
+            };
+
+            return await GetProfileKeys("activities/profile", queryParams);
+        }
+        public async Task<ActivityProfileLrsResponse> RetrieveActivityProfileAsync(string id, Activity activity)
+        {
+            var r = new ActivityProfileLrsResponse();
+
+            var queryParams = new Dictionary<string, string>
+            {
+                { "profileId", id },
+                { "activityId", activity.Id }
+            };
+
+            var profile = new ActivityProfileDocument
+            {
+                Id = id,
+                Activity = activity
+            };
+
+            var resp = await GetDocument("activities/profile", queryParams, profile);
+            if (resp.Status != HttpStatusCode.OK && resp.Status != HttpStatusCode.NotFound)
+            {
+                r.Success = false;
+                r.HttpException = resp.Ex;
+                r.SetErrMsgFromBytes(resp.Content);
                 return r;
             }
-            r.success = true;
-            r.content = profile;
+            r.Success = true;
+            r.Content = profile;
 
             return r;
         }
-        public LRSResponse SaveActivityProfile(ActivityProfileDocument profile)
+        public async Task<LrsResponse> SaveActivityProfileAsync(ActivityProfileDocument profile)
         {
-            var queryParams = new Dictionary<String, String>();
-            queryParams.Add("profileId", profile.id);
-            queryParams.Add("activityId", profile.activity.id.ToString());
+            var queryParams = new Dictionary<string, string>
+            {
+                { "profileId", profile.Id },
+                { "activityId", profile.Activity.Id }
+            };
 
-            return SaveDocument("activities/profile", queryParams, profile);
+            return await SaveDocument("activities/profile", queryParams, profile);
         }
-        public LRSResponse DeleteActivityProfile(ActivityProfileDocument profile)
+        public async Task<LrsResponse> DeleteActivityProfileAsync(ActivityProfileDocument profile)
         {
-            var queryParams = new Dictionary<String, String>();
-            queryParams.Add("profileId", profile.id);
-            queryParams.Add("activityId", profile.activity.id.ToString());
+            var queryParams = new Dictionary<string, string>
+            {
+                { "profileId", profile.Id },
+                { "activityId", profile.Activity.Id }
+            };
             // TODO: need to pass Etag?
 
-            return DeleteDocument("activities/profile", queryParams);
+            return await DeleteDocument("activities/profile", queryParams);
         }
 
         // TODO: since param
-        public ProfileKeysLRSResponse RetrieveAgentProfileIds(Agent agent)
+        public async Task<ProfileKeysLrsResponse> RetrieveAgentProfileIdsAsync(Agent agent)
         {
-            var queryParams = new Dictionary<String, String>();
-            queryParams.Add("agent", agent.ToJSON(version));
-
-            return GetProfileKeys("agents/profile", queryParams);
-        }
-        public AgentProfileLRSResponse RetrieveAgentProfile(String id, Agent agent)
-        {
-            var r = new AgentProfileLRSResponse();
-
-            var queryParams = new Dictionary<String, String>();
-            queryParams.Add("profileId", id);
-            queryParams.Add("agent", agent.ToJSON(version));
-
-            var profile = new AgentProfileDocument();
-            profile.id = id;
-            profile.agent = agent;
-
-            var resp = GetDocument("agents/profile", queryParams, profile);
-            if (resp.status != HttpStatusCode.OK && resp.status != HttpStatusCode.NotFound)
+            var queryParams = new Dictionary<string, string>
             {
-                r.success = false;
-                r.httpException = resp.ex;
-                r.SetErrMsgFromBytes(resp.content);
+                { "agent", agent.ToJson(Version) }
+            };
+
+            return await GetProfileKeys("agents/profile", queryParams);
+        }
+        public async Task<AgentProfileLrsResponse> RetrieveAgentProfileAsync(string id, Agent agent)
+        {
+            var r = new AgentProfileLrsResponse();
+
+            var queryParams = new Dictionary<string, string>
+            {
+                { "profileId", id },
+                { "agent", agent.ToJson(Version) }
+            };
+
+            var profile = new AgentProfileDocument
+            {
+                Id = id,
+                Agent = agent
+            };
+
+
+            var resp = await GetDocument("agents/profile", queryParams, profile);
+            if (resp.Status != HttpStatusCode.OK && resp.Status != HttpStatusCode.NotFound)
+            {
+                r.Success = false;
+                r.HttpException = resp.Ex;
+                r.SetErrMsgFromBytes(resp.Content);
                 return r;
             }
-            r.success = true;
-            r.content = profile;
+
+            profile.Content = resp.Content;
+            profile.ContentType = resp.ContentType;
+            profile.Etag = resp.Etag;
+
+            r.Success = true;
+            r.Content = profile;
 
             return r;
         }
-        public LRSResponse SaveAgentProfile(AgentProfileDocument profile)
+        public async Task<LrsResponse> SaveAgentProfileAsync(AgentProfileDocument profile)
         {
-            var queryParams = new Dictionary<String, String>();
-            queryParams.Add("profileId", profile.id);
-            queryParams.Add("agent", profile.agent.ToJSON(version));
+            var queryParams = new Dictionary<string, string>
+            {
+                { "profileId", profile.Id },
+                { "agent", profile.Agent.ToJson(Version) }
+            };
 
-            return SaveDocument("agents/profile", queryParams, profile);
+            return await SaveDocument("agents/profile", queryParams, profile);
         }
-        public LRSResponse DeleteAgentProfile(AgentProfileDocument profile)
+        public async Task<LrsResponse> DeleteAgentProfileAsync(AgentProfileDocument profile)
         {
-            var queryParams = new Dictionary<String, String>();
-            queryParams.Add("profileId", profile.id);
-            queryParams.Add("agent", profile.agent.ToJSON(version));
+            var queryParams = new Dictionary<string, string>
+            {
+                { "profileId", profile.Id },
+                { "agent", profile.Agent.ToJson(Version) }
+            };
             // TODO: need to pass Etag?
 
-            return DeleteDocument("agents/profile", queryParams);
+            return await DeleteDocument("agents/profile", queryParams);
         }
     }
 }

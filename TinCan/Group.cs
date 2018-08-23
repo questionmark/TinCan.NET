@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -13,7 +14,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-using System;
+
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using TinCan.Json;
@@ -22,35 +23,30 @@ namespace TinCan
 {
     public class Group : Agent
     {
-        public static readonly new String OBJECT_TYPE = "Group";
-        public override String ObjectType { get { return OBJECT_TYPE; } }
-
-        public List<Agent> member { get; set; }
+        public List<Agent> Member { get; set; }
 
         public Group() : base() { }
-        public Group(StringOfJSON json) : this(json.toJObject()) { }
+        public Group(StringOfJson json) : this(json.ToJObject()) { }
 
         public Group(JObject jobj) : base(jobj)
         {
-            if (jobj["member"] != null)
+            if (jobj["member"] == null) return;
+            Member = new List<Agent>();
+            foreach (JObject jagent in jobj["member"])
             {
-                member = new List<Agent>();
-                foreach (JObject jagent in jobj["member"])
-                {
-                    member.Add(new Agent(jagent));
-                }
+                Member.Add(new Agent(jagent));
             }
         }
 
         public override JObject ToJObject(TCAPIVersion version)
         {
-            JObject result = base.ToJObject(version);
-            if (member != null && member.Count > 0)
+            var result = base.ToJObject(version);
+            if (Member != null && Member.Count > 0)
             {
                 var jmember = new JArray();
                 result.Add("member", jmember);
 
-                foreach (Agent agent in member)
+                foreach (var agent in Member)
                 {
                     jmember.Add(agent.ToJObject(version));
                 }

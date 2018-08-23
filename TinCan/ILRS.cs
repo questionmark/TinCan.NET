@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,37 +16,38 @@
 */
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TinCan.Documents;
-using TinCan.LRSResponses;
+using TinCan.LrsResponses;
 
 namespace TinCan
 {
-    public interface ILRS
+    public interface ILrs
     {
-        AboutLRSResponse About();
+        Task<AboutLrsResponse> AboutAsync();
 
-        StatementLRSResponse SaveStatement(Statement statement);
-        StatementLRSResponse VoidStatement(Guid id, Agent agent);
-        StatementsResultLRSResponse SaveStatements(List<Statement> statements);
-        StatementLRSResponse RetrieveStatement(Guid id);
-        StatementLRSResponse RetrieveVoidedStatement(Guid id);
-        StatementsResultLRSResponse QueryStatements(StatementsQuery query);
-        StatementsResultLRSResponse MoreStatements(StatementsResult result);
+        Task<StatementLrsResponse> SaveStatementAsync(Statement statement);
+        Task<StatementLrsResponse> VoidStatementAsync(Guid id, Agent agent);
+        Task<StatementsResultLrsResponse> SaveStatementsAsync(List<Statement> statements);
+        Task<StatementLrsResponse> RetrieveStatementAsync(Guid id);
+        Task<StatementLrsResponse> RetrieveVoidedStatementAsync(Guid id);
+        Task<StatementsResultLrsResponse> QueryStatementsAsync(StatementsQuery query);
+        Task<StatementsResultLrsResponse> MoreStatementsAsync(StatementsResult result);
 
-        ProfileKeysLRSResponse RetrieveStateIds(Activity activity, Agent agent, Nullable<Guid> registration = null);
-        StateLRSResponse RetrieveState(String id, Activity activity, Agent agent, Nullable<Guid> registration = null);
-        LRSResponse SaveState(StateDocument state);
-        LRSResponse DeleteState(StateDocument state);
-        LRSResponse ClearState(Activity activity, Agent agent, Nullable<Guid> registration = null);
+        Task<ProfileKeysLrsResponse> RetrieveStateIdsAsync(Activity activity, Agent agent, Guid? registration = null);
+        Task<StateLrsResponse> RetrieveStateAsync(string id, Activity activity, Agent agent, Guid? registration = null);
+        Task<LrsResponse> SaveStateAsync(StateDocument state);
+        Task<LrsResponse> DeleteStateAsync(StateDocument state);
+        Task<LrsResponse> ClearStateAsync(Activity activity, Agent agent, Guid? registration = null);
 
-        ProfileKeysLRSResponse RetrieveActivityProfileIds(Activity activity);
-        ActivityProfileLRSResponse RetrieveActivityProfile(String id, Activity activity);
-        LRSResponse SaveActivityProfile(ActivityProfileDocument profile);
-        LRSResponse DeleteActivityProfile(ActivityProfileDocument profile);
+        Task<ProfileKeysLrsResponse> RetrieveActivityProfileIdsAsync(Activity activity);
+        Task<ActivityProfileLrsResponse> RetrieveActivityProfileAsync(string id, Activity activity);
+        Task<LrsResponse> SaveActivityProfileAsync(ActivityProfileDocument profile);
+        Task<LrsResponse> DeleteActivityProfileAsync(ActivityProfileDocument profile);
 
-        ProfileKeysLRSResponse RetrieveAgentProfileIds(Agent agent);
-        AgentProfileLRSResponse RetrieveAgentProfile(String id, Agent agent);
-        LRSResponse SaveAgentProfile(AgentProfileDocument profile);
-        LRSResponse DeleteAgentProfile(AgentProfileDocument profile);
+        Task<ProfileKeysLrsResponse> RetrieveAgentProfileIdsAsync(Agent agent);
+        Task<AgentProfileLrsResponse> RetrieveAgentProfileAsync(string id, Agent agent);
+        Task<LrsResponse> SaveAgentProfileAsync(AgentProfileDocument profile);
+        Task<LrsResponse> DeleteAgentProfileAsync(AgentProfileDocument profile);
     }
 }

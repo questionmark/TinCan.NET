@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,71 +23,71 @@ namespace TinCan
 {
     public class Result : JsonModel
     {
-        public Nullable<Boolean> completion { get; set; }
-        public Nullable<Boolean> success { get; set; }
-        public String response { get; set; }
-        public Nullable<TimeSpan> duration { get; set; }
-        public Score score { get; set; }
-        public Extensions extensions { get; set; }
+        public bool? Completion { get; set; }
+        public bool? Success { get; set; }
+        public string Response { get; set; }
+        public TimeSpan? Duration { get; set; }
+        public Score Score { get; set; }
+        public Extensions Extensions { get; set; }
 
         public Result() {}
 
-        public Result(StringOfJSON json): this(json.toJObject()) {}
+        public Result(StringOfJson json): this(json.ToJObject()) {}
 
         public Result(JObject jobj)
         {
             if (jobj["completion"] != null)
             {
-                completion = jobj.Value<Boolean>("completion");
+                Completion = jobj.Value<bool>("completion");
             }
             if (jobj["success"] != null)
             {
-                success = jobj.Value<Boolean>("success");
+                Success = jobj.Value<bool>("success");
             }
             if (jobj["response"] != null)
             {
-                response = jobj.Value<String>("response");
+                Response = jobj.Value<string>("response");
             }
             if (jobj["duration"] != null)
             {
-                duration = XmlConvert.ToTimeSpan(jobj.Value<String>("duration"));
+                Duration = XmlConvert.ToTimeSpan(jobj.Value<string>("duration"));
             }
             if (jobj["score"] != null)
             {
-                score = (Score)jobj.Value<JObject>("score");
+                Score = (Score)jobj.Value<JObject>("score");
             }
             if (jobj["extensions"] != null)
             {
-                extensions = (Extensions)jobj.Value<JObject>("extensions");
+                Extensions = (Extensions)jobj.Value<JObject>("extensions");
             }
         }
 
         public override JObject ToJObject(TCAPIVersion version) {
-            JObject result = new JObject();
+            var result = new JObject();
 
-            if (completion != null)
+            if (Completion != null)
             {
-                result.Add("completion", completion);
+                result.Add("completion", Completion);
             }
-            if (success != null)
+            if (Success != null)
             {
-                result.Add("success", success);
+                result.Add("success", Success);
             }
-            if (response != null)
+            if (Response != null)
             {
-                result.Add("response", response);
+                result.Add("response", Response);
             }
-            if (duration != null)
+            if (Duration != null)
             {
-                result.Add("duration", XmlConvert.ToString((TimeSpan)duration));
+                result.Add("duration", XmlConvert.ToString((TimeSpan)Duration));
             }
-            if (score != null)
+            if (Score != null)
             {
-                result.Add("score", score.ToJObject(version));
+                result.Add("score", Score.ToJObject(version));
             }
-            if (extensions != null)
+            if (Extensions != null)
             {
-                result.Add("extensions", extensions.ToJObject(version));
+                result.Add("extensions", Extensions.ToJObject(version));
             }
 
             return result;

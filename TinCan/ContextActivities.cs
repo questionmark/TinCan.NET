@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -21,86 +22,86 @@ namespace TinCan
 {
     public class ContextActivities : JsonModel
     {
-        public List<Activity> parent { get; set; }
-        public List<Activity> grouping { get; set; }
-        public List<Activity> category { get; set; }
-        public List<Activity> other { get; set; }
+        public List<Activity> Parent { get; set; }
+        public List<Activity> Grouping { get; set; }
+        public List<Activity> Category { get; set; }
+        public List<Activity> Other { get; set; }
 
         public ContextActivities() {}
 
-        public ContextActivities(StringOfJSON json): this(json.toJObject()) {}
+        public ContextActivities(StringOfJson json): this(json.ToJObject()) {}
 
         public ContextActivities(JObject jobj)
         {
             if (jobj["parent"] != null)
             {
-                parent = new List<Activity>();
+                Parent = new List<Activity>();
                 foreach (JObject jactivity in jobj["parent"]) {
-                    parent.Add((Activity)jactivity);
+                    Parent.Add((Activity)jactivity);
                 }
             }
             if (jobj["grouping"] != null)
             {
-                grouping = new List<Activity>();
+                Grouping = new List<Activity>();
                 foreach (JObject jactivity in jobj["grouping"]) {
-                    grouping.Add((Activity)jactivity);
+                    Grouping.Add((Activity)jactivity);
                 }
             }
             if (jobj["category"] != null)
             {
-                category = new List<Activity>();
+                Category = new List<Activity>();
                 foreach (JObject jactivity in jobj["category"]) {
-                    category.Add((Activity)jactivity);
+                    Category.Add((Activity)jactivity);
                 }
             }
             if (jobj["other"] != null)
             {
-                other = new List<Activity>();
+                Other = new List<Activity>();
                 foreach (JObject jactivity in jobj["other"]) {
-                    other.Add((Activity)jactivity);
+                    Other.Add((Activity)jactivity);
                 }
             }
         }
 
         public override JObject ToJObject(TCAPIVersion version) {
-            JObject result = new JObject();
+            var result = new JObject();
 
-            if (parent != null && parent.Count > 0)
+            if (Parent != null && Parent.Count > 0)
             {
                 var jparent = new JArray();
                 result.Add("parent", jparent);
 
-                foreach (Activity activity in parent)
+                foreach (var activity in Parent)
                 {
                     jparent.Add(activity.ToJObject(version));
                 }
             }
-            if (grouping != null && grouping.Count > 0)
+            if (Grouping != null && Grouping.Count > 0)
             {
                 var jgrouping = new JArray();
                 result.Add("grouping", jgrouping);
 
-                foreach (Activity activity in grouping)
+                foreach (var activity in Grouping)
                 {
                     jgrouping.Add(activity.ToJObject(version));
                 }
             }
-            if (category != null && category.Count > 0)
+            if (Category != null && Category.Count > 0)
             {
                 var jcategory = new JArray();
                 result.Add("category", jcategory);
 
-                foreach (Activity activity in category)
+                foreach (var activity in Category)
                 {
                     jcategory.Add(activity.ToJObject(version));
                 }
             }
-            if (other != null && other.Count > 0)
+            if (Other != null && Other.Count > 0)
             {
                 var jother = new JArray();
                 result.Add("other", jother);
 
-                foreach (Activity activity in other)
+                foreach (var activity in Other)
                 {
                     jother.Add(activity.ToJObject(version));
                 }

@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -13,22 +14,21 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
+
+using System.Threading.Tasks;
+
 namespace TinCanTests
 {
     using System;
     using System.Collections.Generic;
-    using System.Xml;
     using NUnit.Framework;
-    using Newtonsoft.Json.Linq;
     using TinCan;
     using TinCan.Documents;
-    using TinCan.Json;
-    using TinCan.LRSResponses;
 
     [TestFixture]
-    class RemoteLRSResourceTest
+    internal class RemoteLrsResourceTest
     {
-        RemoteLRS lrs;
+        private RemoteLrs _lrs;
 
         [SetUp]
         public void Init()
@@ -38,9 +38,9 @@ namespace TinCanTests
             //
             // these are credentials used by the other OSS libs when building via Travis-CI
             // so are okay to include in the repository, if you wish to have access to the
-            // results of the test suite then supply your own endpoint, username, and password
+            // results of the test suite then supply your own Endpoint, username, and password
             //
-            lrs = new RemoteLRS(
+            _lrs = new RemoteLrs(
                 "https://cloud.scorm.com/tc/U2S4SI5FY0/sandbox/",
                 "Nja986GYE1_XrWMmFUE",
                 "Bd9lDr1kjaWWY6RID_4"
@@ -48,131 +48,145 @@ namespace TinCanTests
         }
 
         [Test]
-        public void TestAbout()
+        public async Task TestAboutAsync()
         {
-            AboutLRSResponse lrsRes = lrs.About();
-            Assert.IsTrue(lrsRes.success);
+            var lrsRes = await _lrs.AboutAsync();
+            Assert.IsTrue(lrsRes.Success);
         }
 
         [Test]
-        public void TestAboutFailure()
+        public async Task TestAboutFailureAsync()
         {
-            lrs.endpoint = new Uri("http://cloud.scorm.com/tc/3TQLAI9/sandbox/");
+            _lrs.Endpoint = new Uri("http://cloud.scorm.com/tc/3TQLAI9/sandbox/");
 
-            AboutLRSResponse lrsRes = lrs.About();
-            Assert.IsFalse(lrsRes.success);
-            Console.WriteLine("TestAboutFailure - errMsg: " + lrsRes.errMsg);
+            var lrsRes = await _lrs.AboutAsync();
+            Assert.IsFalse(lrsRes.Success);
+            Console.WriteLine("TestAboutFailure - errMsg: " + lrsRes.ErrMsg);
         }
 
         [Test]
-        public void TestSaveStatement()
+        public async Task TestSaveStatementAsync()
         {
-            var statement = new Statement();
-            statement.actor = Support.agent;
-            statement.verb = Support.verb;
-            statement.target = Support.activity;
+            var statement = new Statement
+            {
+                Actor = Support.Agent,
+                Verb = Support.Verb,
+                Target = Support.Activity
+            };
 
-            StatementLRSResponse lrsRes = lrs.SaveStatement(statement);
-            Assert.IsTrue(lrsRes.success);
-            Assert.AreEqual(statement, lrsRes.content);
-            Assert.IsNotNull(lrsRes.content.id);
+            var lrsRes = await _lrs.SaveStatementAsync(statement);
+            Assert.IsTrue(lrsRes.Success);
+            Assert.AreEqual(statement, lrsRes.Content);
+            Assert.IsNotNull(lrsRes.Content.Id);
         }
 
         [Test]
-        public void TestSaveStatementWithID()
-        {
-            var statement = new Statement();
-            statement.Stamp();
-            statement.actor = Support.agent;
-            statement.verb = Support.verb;
-            statement.target = Support.activity;
-
-            StatementLRSResponse lrsRes = lrs.SaveStatement(statement);
-            Assert.IsTrue(lrsRes.success);
-            Assert.AreEqual(statement, lrsRes.content);
-        }
-
-        [Test]
-        public void TestSaveStatementStatementRef()
+        public async Task TestSaveStatementWithIdAsync()
         {
             var statement = new Statement();
             statement.Stamp();
-            statement.actor = Support.agent;
-            statement.verb = Support.verb;
-            statement.target = Support.statementRef;
+            statement.Actor = Support.Agent;
+            statement.Verb = Support.Verb;
+            statement.Target = Support.Activity;
 
-            StatementLRSResponse lrsRes = lrs.SaveStatement(statement);
-            Assert.IsTrue(lrsRes.success);
-            Assert.AreEqual(statement, lrsRes.content);
+            var lrsRes = await _lrs.SaveStatementAsync(statement);
+            Assert.IsTrue(lrsRes.Success);
+            Assert.AreEqual(statement, lrsRes.Content);
         }
 
         [Test]
-        public void TestSaveStatementSubStatement()
+        public async Task TestSaveStatementStatementRefAsync()
         {
             var statement = new Statement();
             statement.Stamp();
-            statement.actor = Support.agent;
-            statement.verb = Support.verb;
-            statement.target = Support.subStatement;
+            statement.Actor = Support.Agent;
+            statement.Verb = Support.Verb;
+            statement.Target = Support.StatementRef;
 
-            Console.WriteLine(statement.ToJSON(true));
-
-            StatementLRSResponse lrsRes = lrs.SaveStatement(statement);
-            Assert.IsTrue(lrsRes.success);
-            Assert.AreEqual(statement, lrsRes.content);
+            var lrsRes = await _lrs.SaveStatementAsync(statement);
+            Assert.IsTrue(lrsRes.Success);
+            Assert.AreEqual(statement, lrsRes.Content);
         }
 
         [Test]
-        public void TestVoidStatement()
+        public async Task TestSaveStatementSubStatementAsync()
         {
-            Guid toVoid = Guid.NewGuid();
-            StatementLRSResponse lrsRes = lrs.VoidStatement(toVoid, Support.agent);
+            var statement = new Statement();
+            statement.Stamp();
+            statement.Actor = Support.Agent;
+            statement.Verb = Support.Verb;
+            statement.Target = Support.SubStatement;
 
-            Assert.IsTrue(lrsRes.success, "LRS response successful");
-            Assert.AreEqual(new Uri("http://adlnet.gov/expapi/verbs/voided"), lrsRes.content.verb.id, "voiding statement uses voided verb");
-            Assert.AreEqual(toVoid, ((StatementRef) lrsRes.content.target).id, "voiding statement target correct id");
+            Console.WriteLine(statement.ToJson(true));
+
+            var lrsRes = await _lrs.SaveStatementAsync(statement);
+            Assert.IsTrue(lrsRes.Success);
+            Assert.AreEqual(statement, lrsRes.Content);
         }
 
         [Test]
-        public void TestSaveStatements()
+        public async Task TestVoidStatementAsync()
         {
-            var statement1 = new Statement();
-            statement1.actor = Support.agent;
-            statement1.verb = Support.verb;
-            statement1.target = Support.parent;
+            var toVoid = Guid.NewGuid();
+            var lrsRes = await _lrs.VoidStatementAsync(toVoid, Support.Agent);
 
-            var statement2 = new Statement();
-            statement2.actor = Support.agent;
-            statement2.verb = Support.verb;
-            statement2.target = Support.activity;
-            statement2.context = Support.context;
+            Assert.IsTrue(lrsRes.Success, "LRS response successful");
+            Assert.AreEqual(new Uri("http://adlnet.gov/expapi/verbs/voided"), lrsRes.Content.Verb.Id, "voiding statement uses voided verb");
+            Assert.AreEqual(toVoid, ((StatementRef)lrsRes.Content.Target).Id, "voiding statement target correct id");
+        }
 
-            var statements = new List<Statement>();
-            statements.Add(statement1);
-            statements.Add(statement2);
+        [Test]
+        public async Task TestSaveStatementsAsync()
+        {
+            var statement1 = new Statement
+            {
+                Actor = Support.Agent,
+                Verb = Support.Verb,
+                Target = Support.Parent
+            };
 
-            StatementsResultLRSResponse lrsRes = lrs.SaveStatements(statements);
-            Assert.IsTrue(lrsRes.success);
+            var statement2 = new Statement
+            {
+                Actor = Support.Agent,
+                Verb = Support.Verb,
+                Target = Support.Activity,
+                Context = Support.Context
+            };
+
+            var statements = new List<Statement>
+            {
+                statement1,
+                statement2
+            };
+
+            var lrsRes = await _lrs.SaveStatementsAsync(statements);
+            Assert.IsTrue(lrsRes.Success);
             // TODO: check statements match and ids not null
         }
 
         [Test]
-        public void TestRetrieveStatement()
+        public async Task TestRetrieveStatementAsync()
         {
-            var statement = new TinCan.Statement();
+            var statement = new Statement
+            {
+                Actor = Support.Agent,
+                Verb = Support.Verb,
+                Target = Support.Activity,
+                Context = Support.Context,
+                Result = Support.Result
+            };
+
             statement.Stamp();
-            statement.actor = Support.agent;
-            statement.verb = Support.verb;
-            statement.target = Support.activity;
-            statement.context = Support.context;
-            statement.result = Support.result;
 
-            StatementLRSResponse saveRes = lrs.SaveStatement(statement);
-            if (saveRes.success)
+            var saveRes = await _lrs.SaveStatementAsync(statement);
+            if (saveRes.Success)
             {
-                StatementLRSResponse retRes = lrs.RetrieveStatement(saveRes.content.id.Value);
-                Assert.IsTrue(retRes.success);
-                Console.WriteLine("TestRetrieveStatement - statement: " + retRes.content.ToJSON(true));
+                if (saveRes.Content.Id != null)
+                {
+                    var retRes = await _lrs.RetrieveStatementAsync(saveRes.Content.Id.Value);
+                    Assert.IsTrue(retRes.Success);
+                    Console.WriteLine("TestRetrieveStatement - statement: " + retRes.Content.ToJson(true));
+                }
             }
             else
             {
@@ -181,35 +195,39 @@ namespace TinCanTests
         }
 
         [Test]
-        public void TestQueryStatements()
+        public async Task TestQueryStatementsAsync()
         {
-            var query = new TinCan.StatementsQuery();
-            query.agent = Support.agent;
-            query.verbId = Support.verb.id;
-            query.activityId = Support.parent.id;
-            query.relatedActivities = true;
-            query.relatedAgents = true;
-            query.format = StatementsQueryResultFormat.IDS;
-            query.limit = 10;
+            var query = new StatementsQuery
+            {
+                Agent = Support.Agent,
+                VerbId = Support.Verb.Id,
+                ActivityId = Support.Parent.Id,
+                RelatedActivities = true,
+                RelatedAgents = true,
+                Format = StatementsQueryResultFormat.Ids,
+                Limit = 10
+            };
 
-            StatementsResultLRSResponse lrsRes = lrs.QueryStatements(query);
-            Assert.IsTrue(lrsRes.success);
-            Console.WriteLine("TestQueryStatements - statement count: " + lrsRes.content.statements.Count);
+            var lrsRes = await _lrs.QueryStatementsAsync(query);
+            Assert.IsTrue(lrsRes.Success);
+            Console.WriteLine("TestQueryStatements - statement count: " + lrsRes.Content.Statements.Count);
         }
 
         [Test]
-        public void TestMoreStatements()
+        public async Task TestMoreStatementsAsync()
         {
-            var query = new TinCan.StatementsQuery();
-            query.format = StatementsQueryResultFormat.IDS;
-            query.limit = 2;
-
-            StatementsResultLRSResponse queryRes = lrs.QueryStatements(query);
-            if (queryRes.success && queryRes.content.more != null)
+            var query = new StatementsQuery
             {
-                StatementsResultLRSResponse moreRes = lrs.MoreStatements(queryRes.content);
-                Assert.IsTrue(moreRes.success);
-                Console.WriteLine("TestMoreStatements - statement count: " + moreRes.content.statements.Count);
+                Format = StatementsQueryResultFormat.Ids,
+                Limit = 2
+            };
+
+            var queryRes = await _lrs.QueryStatementsAsync(query);
+            if (queryRes.Success && queryRes.Content.More != null)
+            {
+                var moreRes = await _lrs.MoreStatementsAsync(queryRes.Content);
+                Assert.IsTrue(moreRes.Success);
+                Console.WriteLine("TestMoreStatements - statement count: " + moreRes.Content.Statements.Count);
             }
             else
             {
@@ -218,126 +236,138 @@ namespace TinCanTests
         }
 
         [Test]
-        public void TestRetrieveStateIds()
+        public async Task TestRetrieveStateIdsAsync()
         {
-            ProfileKeysLRSResponse lrsRes = lrs.RetrieveStateIds(Support.activity, Support.agent);
-            Assert.IsTrue(lrsRes.success);
+            var lrsRes = await _lrs.RetrieveStateIdsAsync(Support.Activity, Support.Agent);
+            Assert.IsTrue(lrsRes.Success);
         }
 
         [Test]
-        public void TestRetrieveState()
+        public async Task TestRetrieveStateAsync()
         {
-            StateLRSResponse lrsRes = lrs.RetrieveState("test", Support.activity, Support.agent);
-            Assert.IsTrue(lrsRes.success);
-            Assert.IsInstanceOf<TinCan.Documents.StateDocument>(lrsRes.content);
+            var lrsRes = await _lrs.RetrieveStateAsync("test", Support.Activity, Support.Agent);
+            Assert.IsTrue(lrsRes.Success);
+            Assert.IsInstanceOf<StateDocument>(lrsRes.Content);
         }
 
         [Test]
-        public void TestSaveState()
+        public async Task TestSaveStateAsync()
         {
-            var doc = new StateDocument();
-            doc.activity = Support.activity;
-            doc.agent = Support.agent;
-            doc.id = "test";
-            doc.content = System.Text.Encoding.UTF8.GetBytes("Test value");
+            var doc = new StateDocument
+            {
+                Activity = Support.Activity,
+                Agent = Support.Agent,
+                Id = "test",
+                Content = System.Text.Encoding.UTF8.GetBytes("Test value")
+            };
 
-            LRSResponse lrsRes = lrs.SaveState(doc);
-            Assert.IsTrue(lrsRes.success);
+            var lrsRes = await _lrs.SaveStateAsync(doc);
+            Assert.IsTrue(lrsRes.Success);
         }
 
         [Test]
-        public void TestDeleteState()
+        public async Task TestDeleteStateAsync()
         {
-            var doc = new StateDocument();
-            doc.activity = Support.activity;
-            doc.agent = Support.agent;
-            doc.id = "test";
+            var doc = new StateDocument
+            {
+                Activity = Support.Activity,
+                Agent = Support.Agent,
+                Id = "test"
+            };
 
-            LRSResponse lrsRes = lrs.DeleteState(doc);
-            Assert.IsTrue(lrsRes.success);
+            var lrsRes = await _lrs.DeleteStateAsync(doc);
+            Assert.IsTrue(lrsRes.Success);
         }
 
         [Test]
-        public void TestClearState()
+        public async Task TestClearStateAsync()
         {
-            LRSResponse lrsRes = lrs.ClearState(Support.activity, Support.agent);
-            Assert.IsTrue(lrsRes.success);
+            var lrsRes = await _lrs.ClearStateAsync(Support.Activity, Support.Agent);
+            Assert.IsTrue(lrsRes.Success);
         }
 
         [Test]
-        public void TestRetrieveActivityProfileIds()
+        public async Task TestRetrieveActivityProfileIdsAsync()
         {
-            ProfileKeysLRSResponse lrsRes = lrs.RetrieveActivityProfileIds(Support.activity);
-            Assert.IsTrue(lrsRes.success);
+            var lrsRes = await _lrs.RetrieveActivityProfileIdsAsync(Support.Activity);
+            Assert.IsTrue(lrsRes.Success);
         }
 
         [Test]
-        public void TestRetrieveActivityProfile()
+        public async Task TestRetrieveActivityProfileAsync()
         {
-            ActivityProfileLRSResponse lrsRes = lrs.RetrieveActivityProfile("test", Support.activity);
-            Assert.IsTrue(lrsRes.success);
-            Assert.IsInstanceOf<TinCan.Documents.ActivityProfileDocument>(lrsRes.content);
+            var lrsRes = await _lrs.RetrieveActivityProfileAsync("test", Support.Activity);
+            Assert.IsTrue(lrsRes.Success);
+            Assert.IsInstanceOf<ActivityProfileDocument>(lrsRes.Content);
         }
 
         [Test]
-        public void TestSaveActivityProfile()
+        public async Task TestSaveActivityProfileAsync()
         {
-            var doc = new ActivityProfileDocument();
-            doc.activity = Support.activity;
-            doc.id = "test";
-            doc.content = System.Text.Encoding.UTF8.GetBytes("Test value");
+            var doc = new ActivityProfileDocument
+            {
+                Activity = Support.Activity,
+                Id = "test",
+                Content = System.Text.Encoding.UTF8.GetBytes("Test value")
+            };
 
-            LRSResponse lrsRes = lrs.SaveActivityProfile(doc);
-            Assert.IsTrue(lrsRes.success);
+            var lrsRes = await _lrs.SaveActivityProfileAsync(doc);
+            Assert.IsTrue(lrsRes.Success);
         }
 
         [Test]
-        public void TestDeleteActivityProfile()
+        public async Task TestDeleteActivityProfileAsync()
         {
-            var doc = new ActivityProfileDocument();
-            doc.activity = Support.activity;
-            doc.id = "test";
+            var doc = new ActivityProfileDocument
+            {
+                Activity = Support.Activity,
+                Id = "test"
+            };
 
-            LRSResponse lrsRes = lrs.DeleteActivityProfile(doc);
-            Assert.IsTrue(lrsRes.success);
+            var lrsRes = await _lrs.DeleteActivityProfileAsync(doc);
+            Assert.IsTrue(lrsRes.Success);
         }
 
         [Test]
-        public void TestRetrieveAgentProfileIds()
+        public async Task TestRetrieveAgentProfileIdsAsync()
         {
-            ProfileKeysLRSResponse lrsRes = lrs.RetrieveAgentProfileIds(Support.agent);
-            Assert.IsTrue(lrsRes.success);
+            var lrsRes = await _lrs.RetrieveAgentProfileIdsAsync(Support.Agent);
+            Assert.IsTrue(lrsRes.Success);
         }
 
         [Test]
-        public void TestRetrieveAgentProfile()
+        public async Task TestRetrieveAgentProfileAsync()
         {
-            AgentProfileLRSResponse lrsRes = lrs.RetrieveAgentProfile("test", Support.agent);
-            Assert.IsTrue(lrsRes.success);
-            Assert.IsInstanceOf<TinCan.Documents.AgentProfileDocument>(lrsRes.content);
+            var lrsRes = await _lrs.RetrieveAgentProfileAsync("test", Support.Agent);
+            Assert.IsTrue(lrsRes.Success);
+            Assert.IsInstanceOf<AgentProfileDocument>(lrsRes.Content);
         }
 
         [Test]
-        public void TestSaveAgentProfile()
+        public async Task TestSaveAgentProfileAsync()
         {
-            var doc = new AgentProfileDocument();
-            doc.agent = Support.agent;
-            doc.id = "test";
-            doc.content = System.Text.Encoding.UTF8.GetBytes("Test value");
+            var doc = new AgentProfileDocument
+            {
+                Agent = Support.Agent,
+                Id = "test",
+                Content = System.Text.Encoding.UTF8.GetBytes("Test value")
+            };
 
-            LRSResponse lrsRes = lrs.SaveAgentProfile(doc);
-            Assert.IsTrue(lrsRes.success);
+            var lrsRes = await _lrs.SaveAgentProfileAsync(doc);
+            Assert.IsTrue(lrsRes.Success);
         }
 
         [Test]
-        public void TestDeleteAgentProfile()
+        public async Task TestDeleteAgentProfileAsync()
         {
-            var doc = new AgentProfileDocument();
-            doc.agent = Support.agent;
-            doc.id = "test";
+            var doc = new AgentProfileDocument
+            {
+                Agent = Support.Agent,
+                Id = "test"
+            };
 
-            LRSResponse lrsRes = lrs.DeleteAgentProfile(doc);
-            Assert.IsTrue(lrsRes.success);
+            var lrsRes = await _lrs.DeleteAgentProfileAsync(doc);
+            Assert.IsTrue(lrsRes.Success);
         }
     }
 }

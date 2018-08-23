@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -13,33 +14,33 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-using System;
+
 using Newtonsoft.Json.Linq;
 
 namespace TinCan.Json
 {
-    public class StringOfJSON
+    public class StringOfJson
     {
-        private String source;
+        private readonly string _source;
 
-        public StringOfJSON(String json)
+        public StringOfJson(string json)
         {
-            source = json;
+            _source = json;
         }
 
-        public JObject toJObject()
+        public JObject ToJObject()
         {
-            if (source == null)
+            if (_source == null)
             {
                 return null;
             }
 
-            return JObject.Parse(source);
+            return JObject.Parse(_source);
         }
 
-        public override String ToString()
+        public override string ToString()
         {
-            return this.source;
+            return _source;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -20,51 +21,58 @@ namespace TinCan
 {
     public sealed class TCAPIVersion
     {
+        public static readonly TCAPIVersion V103 = new TCAPIVersion("1.0.3");
         public static readonly TCAPIVersion V102 = new TCAPIVersion("1.0.2");
         public static readonly TCAPIVersion V101 = new TCAPIVersion("1.0.1");
         public static readonly TCAPIVersion V100 = new TCAPIVersion("1.0.0");
         public static readonly TCAPIVersion V095 = new TCAPIVersion("0.95");
         public static readonly TCAPIVersion V090 = new TCAPIVersion("0.9");
 
-        public static TCAPIVersion latest()
+        public static TCAPIVersion Latest()
         {
-            return V101;
+            return V103;
         }
 
-        private static Dictionary<String, TCAPIVersion> known;
-        private static Dictionary<String, TCAPIVersion> supported;
+        private static Dictionary<string, TCAPIVersion> _known;
+        private static Dictionary<string, TCAPIVersion> _supported;
 
-        public static Dictionary<String, TCAPIVersion> GetKnown()
+        public static Dictionary<string, TCAPIVersion> GetKnown()
         {
-            if (known != null) {
-                return known;
+            if (_known != null) {
+                return _known;
             }
 
-            known = new Dictionary<String, TCAPIVersion>();
-            known.Add("1.0.2", V102);
-            known.Add("1.0.1", V101);
-            known.Add("1.0.0", V100);
-            known.Add("0.95", V095);
-            known.Add("0.9", V090);
+            _known = new Dictionary<string, TCAPIVersion>
+            {
+                {"1.0.3", V103},
+                {"1.0.2", V102},
+                {"1.0.1", V101},
+                {"1.0.0", V100},
+                {"0.95", V095},
+                {"0.9", V090}
+            };
 
-            return known;
+            return _known;
         }
 
-        public static Dictionary<String, TCAPIVersion> GetSupported()
+        public static Dictionary<string, TCAPIVersion> GetSupported()
         {
-            if (supported != null) {
-                return supported;
+            if (_supported != null) {
+                return _supported;
             }
 
-            supported = new Dictionary<String, TCAPIVersion>();
-            supported.Add("1.0.2", V102);
-            supported.Add("1.0.1", V101);
-            supported.Add("1.0.0", V100);
+            _supported = new Dictionary<string, TCAPIVersion>
+            {
+                {"1.0.3", V103},
+                {"1.0.2", V102},
+                {"1.0.1", V101},
+                {"1.0.0", V100}
+            };
 
-            return supported;
+            return _supported;
         }
 
-        public static explicit operator TCAPIVersion(String vStr)
+        public static explicit operator TCAPIVersion(string vStr)
         {
             var s = GetKnown();
             if (!s.ContainsKey(vStr))
@@ -75,16 +83,16 @@ namespace TinCan
             return s[vStr];
         }
 
-        private String text;
+        private readonly string _text;
 
-        private TCAPIVersion(String value)
+        private TCAPIVersion(string value)
         {
-            text = value;
+            _text = value;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
-            return text;
+            return _text;
         }
     }
 }

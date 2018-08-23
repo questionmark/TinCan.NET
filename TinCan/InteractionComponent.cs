@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright 2014 Rustici Software
+    Copyright 2015 Rustici Software
     Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,61 +14,55 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-using System;
+
 using Newtonsoft.Json.Linq;
 using TinCan.Json;
 
 namespace TinCan
 {
-    public class Verb : JsonModel
+    public class InteractionComponent : JsonModel
     {
-        public Uri Id { get; set; }
-        public LanguageMap Display { get; set; }
+        public string Id;
+        public LanguageMap Description { get; set; }
 
-        public Verb() {}
+        public InteractionComponent()
+        {
 
-        public Verb(StringOfJson json): this(json.ToJObject()) {}
+        }
 
-        public Verb(JObject jobj)
+        public InteractionComponent(JObject jobj)
         {
             if (jobj["id"] != null)
             {
-                Id = new Uri(jobj.Value<string>("id"));
+                Id = jobj.Value<string>("id");
             }
-            if (jobj["display"] != null)
+            if (jobj["description"] != null)
             {
-                Display = (LanguageMap)jobj.Value<JObject>("display");
+                Description = (LanguageMap)jobj.Value<JObject>("description");
             }
-        }
-
-        public Verb(Uri uri)
-        {
-            Id = uri;
-        }
-
-        public Verb(string str)
-        {
-            Id = new Uri (str);
+ 
         }
 
         public override JObject ToJObject(TCAPIVersion version) {
             var result = new JObject();
+
             if (Id != null)
             {
-                result.Add("id", Id.ToString());
+                result.Add("id", Id);
             }
-
-            if (Display != null && ! Display.IsEmpty())
+            if (Description != null && !Description.IsEmpty())
             {
-                result.Add("display", Display.ToJObject(version));
+                result.Add("description", Description.ToJObject(version));
             }
 
             return result;
         }
 
-        public static explicit operator Verb(JObject jobj)
+        public static explicit operator InteractionComponent(JObject jobj)
         {
-            return new Verb(jobj);
+            return new InteractionComponent(jobj);
         }
+
     }
+
 }

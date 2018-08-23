@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -21,77 +22,79 @@ namespace TinCan
     public class StatementsQuery
     {
         // TODO: put in common location
-        private const String ISODateTimeFormat = "o";
+        private const string IsoDateTimeFormat = "o";
 
-        public Agent agent { get; set; }
-        public Uri verbId { get; set; }
+        public Agent Agent { get; set; }
+        public Uri VerbId { get; set; }
         private string _activityId;
-        public string activityId {
-            get { return _activityId; }
+        public string ActivityId
+        {
+            get => _activityId;
             set
             {
-                Uri uri = new Uri(value);
+                var uri = new Uri(value);
                 _activityId = value;
             }
         }
-        public Nullable<Guid> registration { get; set; }
-        public Nullable<Boolean> relatedActivities { get; set; }
-        public Nullable<Boolean> relatedAgents { get; set; }
-        public Nullable<DateTime> since { get; set; }
-        public Nullable<DateTime> until { get; set; }
-        public Nullable<Int32> limit { get; set; }
-        public StatementsQueryResultFormat format { get; set; }
-        public Nullable<Boolean> ascending { get; set; }
+
+        public Guid? Registration { get; set; }
+        public bool? RelatedActivities { get; set; }
+        public bool? RelatedAgents { get; set; }
+        public DateTime? Since { get; set; }
+        public DateTime? Until { get; set; }
+        public int? Limit { get; set; }
+        public StatementsQueryResultFormat Format { get; set; }
+        public bool? Ascending { get; set; }
 
         public StatementsQuery() {}
 
-        public Dictionary<String, String> ToParameterMap (TCAPIVersion version)
+        public Dictionary<string, string> ToParameterMap (TCAPIVersion version)
         {
-            var result = new Dictionary<String, String>();
+            var result = new Dictionary<string, string>();
 
-            if (agent != null)
+            if (Agent != null)
             {
-                result.Add("agent", agent.ToJSON(version));
+                result.Add("agent", Agent.ToJson(version));
             }
-            if (verbId != null)
+            if (VerbId != null)
             {
-                result.Add("verb", verbId.ToString());
+                result.Add("verb", VerbId.ToString());
             }
-            if (activityId != null)
+            if (ActivityId != null)
             {
-                result.Add("activity", activityId);
+                result.Add("activity", ActivityId);
             }
-            if (registration != null)
+            if (Registration != null)
             {
-                result.Add("registration", registration.Value.ToString());
+                result.Add("registration", Registration.Value.ToString());
             }
-            if (relatedActivities != null)
+            if (RelatedActivities != null)
             {
-                result.Add("related_activities", relatedActivities.Value.ToString());
+                result.Add("related_activities", RelatedActivities.Value.ToString());
             }
-            if (relatedAgents != null)
+            if (RelatedAgents != null)
             {
-                result.Add("related_agents", relatedAgents.Value.ToString());
+                result.Add("related_agents", RelatedAgents.Value.ToString());
             }
-            if (since != null)
+            if (Since != null)
             {
-                result.Add("since", since.Value.ToString(ISODateTimeFormat));
+                result.Add("since", Since.Value.ToString(IsoDateTimeFormat));
             }
-            if (until != null)
+            if (Until != null)
             {
-                result.Add("until", until.Value.ToString(ISODateTimeFormat));
+                result.Add("until", Until.Value.ToString(IsoDateTimeFormat));
             }
-            if (limit != null)
+            if (Limit != null)
             {
-                result.Add("limit", limit.ToString());
+                result.Add("limit", Limit.ToString());
             }
-            if (format != null)
+            if (Format != null)
             {
-                result.Add("format", format.ToString());
+                result.Add("format", Format.ToString());
             }
-            if (ascending != null)
+            if (Ascending != null)
             {
-                result.Add("ascending", ascending.Value.ToString());
+                result.Add("ascending", Ascending.Value.ToString());
             }
 
             return result;

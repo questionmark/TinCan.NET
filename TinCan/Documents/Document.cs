@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -19,10 +20,10 @@ namespace TinCan.Documents
 {
     public abstract class Document
     {
-        public String id { get; set; }
-        public String etag { get; set; }
-        public DateTime timestamp { get; set; }
-        public String contentType { get; set; }
-        public byte[] content { get; set; }
+        public string Id { get; set; }
+        public string Etag { get; set; }
+        public DateTime Timestamp { get; set; }
+        public string ContentType { get; set; }
+        public byte[] Content { get; set; }
     }
 }

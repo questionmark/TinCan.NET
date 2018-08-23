@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -13,7 +14,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-using System;
+
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using TinCan.Json;
@@ -22,30 +23,30 @@ namespace TinCan
 {
     public class StatementsResult
     {
-        public List<Statement> statements { get; set; }
-        public String more { get; set; }
+        public List<Statement> Statements { get; set; }
+        public string More { get; set; }
 
         public StatementsResult() {}
-        public StatementsResult(String str) : this(new StringOfJSON(str)) {}
-        public StatementsResult(StringOfJSON json) : this(json.toJObject()) {}
+        public StatementsResult(string str) : this(new StringOfJson(str)) {}
+        public StatementsResult(StringOfJson json) : this(json.ToJObject()) {}
         public StatementsResult(List<Statement> statements)
         {
-            this.statements = statements;
+            Statements = statements;
         }
 
         public StatementsResult(JObject jobj)
         {
             if (jobj["statements"] != null)
             {
-                statements = new List<Statement>();
+                Statements = new List<Statement>();
                 foreach (var item in jobj.Value<JArray>("statements"))
                 {
-                    statements.Add(new Statement((JObject)item));
+                    Statements.Add(new Statement((JObject)item));
                 }
             }
             if (jobj["more"] != null)
             {
-                more = jobj.Value<String>("more");
+                More = jobj.Value<string>("more");
             }
         }
     }

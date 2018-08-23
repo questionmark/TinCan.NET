@@ -117,3 +117,5 @@ Doc/Help/
 .DS_Store
 *.swp
 tmp/
+/.vs/TinCan
+/TinCan/Properties/PublishProfiles

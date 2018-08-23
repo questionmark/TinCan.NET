@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -21,112 +22,100 @@ namespace TinCan
 {
     public class Context : JsonModel
     {
-        public Nullable<Guid> registration { get; set; }
-        public Agent instructor { get; set; }
-        public Agent team { get; set; }
-        public ContextActivities contextActivities { get; set; }
-        public String revision { get; set; }
-        public String platform { get; set; }
-        public String language { get; set; }
-        public StatementRef statement { get; set; }
-        public Extensions extensions { get; set; }
+        public Guid? Registration { get; set; }
+        public Agent Instructor { get; set; }
+        public Agent Team { get; set; }
+        public ContextActivities ContextActivities { get; set; }
+        public string Revision { get; set; }
+        public string Platform { get; set; }
+        public string Language { get; set; }
+        public StatementRef Statement { get; set; }
+        public Extensions Extensions { get; set; }
 
         public Context() {}
 
-        public Context(StringOfJSON json): this(json.toJObject()) {}
+        public Context(StringOfJson json): this(json.ToJObject()) {}
 
         public Context(JObject jobj)
         {
             if (jobj["registration"] != null)
             {
-                registration = new Guid(jobj.Value<String>("registration"));
+                Registration = new Guid(jobj.Value<string>("registration"));
             }
             if (jobj["instructor"] != null)
             {
-                if (jobj["instructor"]["objectType"] != null && (String)jobj["instructor"]["objectType"] == Group.OBJECT_TYPE)
-                {
-                    instructor = (Group)jobj.Value<JObject>("instructor");
-                }
-                else
-                {
-                    instructor = (Agent)jobj.Value<JObject>("instructor");
-                }
+                // TODO: can be Group?
+                Instructor = (Agent)jobj.Value<JObject>("instructor");
             }
             if (jobj["team"] != null)
             {
-                if (jobj["team"]["objectType"] != null && (String)jobj["team"]["objectType"] == Group.OBJECT_TYPE)
-                {
-                    team = (Group)jobj.Value<JObject>("team");
-                }
-                else
-                {
-                    team = (Agent)jobj.Value<JObject>("team");
-                }
+                // TODO: can be Group?
+                Team = (Agent)jobj.Value<JObject>("team");
             }
             if (jobj["contextActivities"] != null)
             {
-                contextActivities = (ContextActivities)jobj.Value<JObject>("contextActivities");
+                ContextActivities = (ContextActivities)jobj.Value<JObject>("contextActivities");
             }
             if (jobj["revision"] != null)
             {
-                revision = jobj.Value<String>("revision");
+                Revision = jobj.Value<string>("revision");
             }
             if (jobj["platform"] != null)
             {
-                platform = jobj.Value<String>("platform");
+                Platform = jobj.Value<string>("platform");
             }
             if (jobj["language"] != null)
             {
-                language = jobj.Value<String>("language");
+                Language = jobj.Value<string>("language");
             }
             if (jobj["statement"] != null)
             {
-                statement = (StatementRef)jobj.Value<JObject>("statement");
+                Statement = (StatementRef)jobj.Value<JObject>("statement");
             }
             if (jobj["extensions"] != null)
             {
-                extensions = (Extensions)jobj.Value<JObject>("extensions");
+                Extensions = (Extensions)jobj.Value<JObject>("extensions");
             }
         }
 
         public override JObject ToJObject(TCAPIVersion version) {
-            JObject result = new JObject();
+            var result = new JObject();
 
-            if (registration != null)
+            if (Registration != null)
             {
-                result.Add("registration", registration.ToString());
+                result.Add("registration", Registration.ToString());
             }
-            if (instructor != null)
+            if (Instructor != null)
             {
-                result.Add("instructor", instructor.ToJObject(version));
+                result.Add("instructor", Instructor.ToJObject(version));
             }
-            if (team != null)
+            if (Team != null)
             {
-                result.Add("team", team.ToJObject(version));
+                result.Add("team", Team.ToJObject(version));
             }
-            if (contextActivities != null)
+            if (ContextActivities != null)
             {
-                result.Add("contextActivities", contextActivities.ToJObject(version));
+                result.Add("contextActivities", ContextActivities.ToJObject(version));
             }
-            if (revision != null)
+            if (Revision != null)
             {
-                result.Add("revision", revision);
+                result.Add("revision", Revision);
             }
-            if (platform != null)
+            if (Platform != null)
             {
-                result.Add("platform", platform);
+                result.Add("platform", Platform);
             }
-            if (language != null)
+            if (Language != null)
             {
-                result.Add("language", language);
+                result.Add("language", Language);
             }
-            if (statement != null)
+            if (Statement != null)
             {
-                result.Add("statement", statement.ToJObject(version));
+                result.Add("statement", Statement.ToJObject(version));
             }
-            if (extensions != null)
+            if (Extensions != null)
             {
-                result.Add("extensions", extensions.ToJObject(version));
+                result.Add("extensions", Extensions.ToJObject(version));
             }
 
             return result;

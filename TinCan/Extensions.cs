@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,25 +23,25 @@ namespace TinCan
 {
     public class Extensions : JsonModel
     {
-        private Dictionary<Uri, JToken> map;
+        private readonly Dictionary<Uri, JToken> _map;
 
         public Extensions()
         {
-            map = new Dictionary<Uri, JToken>();
+            _map = new Dictionary<Uri, JToken>();
         }
 
         public Extensions(JObject jobj) : this()
         {
             foreach (var item in jobj)
             {
-                map.Add(new Uri(item.Key), item.Value); 
+                _map.Add(new Uri(item.Key), item.Value); 
             }
         }
 
         public override JObject ToJObject(TCAPIVersion version)
         {
-            JObject result = new JObject();
-            foreach (KeyValuePair<Uri, JToken> entry in map)
+            var result = new JObject();
+            foreach (var entry in _map)
             {
                 result.Add(entry.Key.ToString(), entry.Value);
             }
@@ -48,9 +49,9 @@ namespace TinCan
             return result;
         }
 
-        public Boolean isEmpty()
+        public bool IsEmpty()
         {
-            return map.Count > 0 ? false : true;
+            return _map.Count <= 0;
         }
 
         public static explicit operator Extensions(JObject jobj)

@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -13,7 +14,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-using System;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -26,12 +27,12 @@ namespace TinCan.Json
 
         public JObject ToJObject()
         {
-            return ToJObject(TCAPIVersion.latest());
+            return ToJObject(TCAPIVersion.Latest());
         }
 
-        public String ToJSON(TCAPIVersion version, Boolean pretty = false)
+        public string ToJson(TCAPIVersion version, bool pretty = false)
         {
-            Formatting formatting = Formatting.None;
+            var formatting = Formatting.None;
             if (pretty)
             {
                 formatting = Formatting.Indented;
@@ -40,9 +41,9 @@ namespace TinCan.Json
             return JsonConvert.SerializeObject(ToJObject(version), formatting);
         }
 
-        public String ToJSON(Boolean pretty = false)
+        public string ToJson(bool pretty = false)
         {
-            return ToJSON(TCAPIVersion.latest(), pretty);
+            return ToJson(TCAPIVersion.Latest(), pretty);
         }
     }
 }

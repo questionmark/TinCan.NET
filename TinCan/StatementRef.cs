@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -19,36 +20,38 @@ using TinCan.Json;
 
 namespace TinCan
 {
-    public class StatementRef : JsonModel, StatementTarget
+    public class StatementRef : JsonModel, IStatementTarget
     {
-        public static readonly String OBJECT_TYPE = "StatementRef";
-        public String ObjectType { get { return OBJECT_TYPE; } }
+        public static readonly string OBJECT_TYPE = "StatementRef";
+        public string ObjectType => OBJECT_TYPE;
 
-        public Nullable<Guid> id { get; set; }
+        public Guid? Id { get; set; }
 
         public StatementRef() {}
         public StatementRef(Guid id)
         {
-            this.id = id;
+            Id = id;
         }
 
-        public StatementRef(StringOfJSON json): this(json.toJObject()) {}
+        public StatementRef(StringOfJson json): this(json.ToJObject()) {}
 
         public StatementRef(JObject jobj)
         {
             if (jobj["id"] != null)
             {
-                id = new Guid(jobj.Value<String>("id"));
+                Id = new Guid(jobj.Value<string>("id"));
             }
         }
 
         public override JObject ToJObject(TCAPIVersion version) {
-            JObject result = new JObject();
-            result.Add("objectType", ObjectType);
-
-            if (id != null)
+            var result = new JObject
             {
-                result.Add("id", id.ToString());
+                { "objectType", ObjectType }
+            };
+
+            if (Id != null)
+            {
+                result.Add("id", Id.ToString());
             }
 
             return result;
@@ -59,4 +62,5 @@ namespace TinCan
             return new StatementRef(jobj);
         }
     }
+
 }

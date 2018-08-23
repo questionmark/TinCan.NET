@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -13,27 +14,25 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-using System;
-using System.Collections.Generic;
 
 namespace TinCan
 {
     public sealed class StatementsQueryResultFormat
     {
-        public static readonly StatementsQueryResultFormat IDS = new StatementsQueryResultFormat("ids");
-        public static readonly StatementsQueryResultFormat EXACT = new StatementsQueryResultFormat("exact");
-        public static readonly StatementsQueryResultFormat CANONICAL = new StatementsQueryResultFormat("canonical");
+        public static readonly StatementsQueryResultFormat Ids = new StatementsQueryResultFormat("ids");
+        public static readonly StatementsQueryResultFormat Exact = new StatementsQueryResultFormat("exact");
+        public static readonly StatementsQueryResultFormat Canonical = new StatementsQueryResultFormat("canonical");
 
-        private String text;
+        private readonly string _text;
 
-        private StatementsQueryResultFormat(String value)
+        private StatementsQueryResultFormat(string value)
         {
-            text = value;
+            _text = value;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
-            return text;
+            return _text;
         }
     }
 }

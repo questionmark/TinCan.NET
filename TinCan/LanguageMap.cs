@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -14,36 +15,37 @@
     limitations under the License.
 */
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using TinCan.Json;
 
 namespace TinCan
 {
-    public class LanguageMap : JsonModel
+    public class LanguageMap : JsonModel, IEnumerable
     {
-        private Dictionary<String, String> map;
+        private readonly Dictionary<string, string> _map;
 
         public LanguageMap() {
-            map = new Dictionary<String, String>();
+            _map = new Dictionary<string, string>();
         }
-        public LanguageMap(Dictionary<String, String> map)
+        public LanguageMap(Dictionary<string, string> map)
         {
-            this.map = map;
+            _map = map;
         }
 
-        public LanguageMap(StringOfJSON json) : this(json.toJObject()) { }
+        public LanguageMap(StringOfJson json) : this(json.ToJObject()) { }
         public LanguageMap(JObject jobj) : this()
         {
-            foreach (KeyValuePair<String,JToken> entry in jobj) {
-                map.Add(entry.Key, (String)entry.Value);
+            foreach (var entry in jobj) {
+                _map.Add(entry.Key, (string)entry.Value);
             }
         }
 
         public override JObject ToJObject(TCAPIVersion version)
         {
-            JObject result = new JObject();
-            foreach (KeyValuePair<String, String> entry in this.map)
+            var result = new JObject();
+            foreach (var entry in _map)
             {
                 result.Add(entry.Key, entry.Value);
             }
@@ -51,19 +53,29 @@ namespace TinCan
             return result;
         }
 
-        public Boolean isEmpty()
+        public bool IsEmpty()
         {
-            return map.Count > 0 ? false : true;
+            return _map.Count <= 0;
         }
 
-        public void Add(String lang, String value)
+        public void Add(string lang, string value)
         {
-            this.map.Add(lang, value);
+            _map.Add(lang, value);
         }
 
         public static explicit operator LanguageMap(JObject jobj)
         {
             return new LanguageMap(jobj);
+        }
+
+        public override string ToString()
+        {
+            return string.Join(", ", _map.Values);
+        }
+
+        public IEnumerator GetEnumerator()
+        {
+            throw new NotImplementedException();
         }
     }
 }

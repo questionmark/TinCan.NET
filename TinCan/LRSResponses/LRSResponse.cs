@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,21 +16,21 @@
 */
 using System;
 
-namespace TinCan.LRSResponses
+namespace TinCan.LrsResponses
 {
     //
     // this isn't abstract because some responses for an LRS won't have content
     // so in those cases we can get by just returning this base response
     //
-    public class LRSResponse
+    public class LrsResponse
     {
-        public Boolean success { get; set; }
-        public Exception httpException { get; set; }
-        public String errMsg { get; set; }
+        public bool Success { get; set; }
+        public Exception HttpException { get; set; }
+        public string ErrMsg { get; set; }
 
         public void SetErrMsgFromBytes(byte[] content)
         {
-            errMsg = System.Text.Encoding.UTF8.GetString(content);
+            ErrMsg = System.Text.Encoding.UTF8.GetString(content);
         }
     }
 }

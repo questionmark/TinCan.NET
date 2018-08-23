@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2015 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,56 +16,57 @@
 */
 namespace TinCanTests
 {
-    using System;
     using NUnit.Framework;
     using Newtonsoft.Json.Linq;
     using TinCan;
     using TinCan.Json;
 
     [TestFixture]
-    class ResultTest
+    internal class ResultTest
     {
         [Test]
         public void TestEmptyCtr()
         {
             var obj = new Result();
             Assert.IsInstanceOf<Result>(obj);
-            Assert.IsNull(obj.completion);
-            Assert.IsNull(obj.success);
-            Assert.IsNull(obj.response);
-            Assert.IsNull(obj.duration);
-            Assert.IsNull(obj.score);
-            Assert.IsNull(obj.extensions);
+            Assert.IsNull(obj.Completion);
+            Assert.IsNull(obj.Success);
+            Assert.IsNull(obj.Response);
+            Assert.IsNull(obj.Duration);
+            Assert.IsNull(obj.Score);
+            Assert.IsNull(obj.Extensions);
 
-            StringAssert.AreEqualIgnoringCase("{}", obj.ToJSON());
+            StringAssert.AreEqualIgnoringCase("{}", obj.ToJson());
         }
 
         [Test]
         public void TestJObjectCtr()
         {
-            var cfg = new JObject();
-            cfg.Add("completion", true);
-            cfg.Add("success", true);
-            cfg.Add("response", "Yes");
+            var cfg = new JObject
+            {
+                { "completion", true },
+                { "success", true },
+                { "response", "Yes" }
+            };
 
             var obj = new Result(cfg);
             Assert.IsInstanceOf<Result>(obj);
-            Assert.That(obj.completion, Is.EqualTo(true));
-            Assert.That(obj.success, Is.EqualTo(true));
-            Assert.That(obj.response, Is.EqualTo("Yes"));
+            Assert.That(obj.Completion, Is.EqualTo(true));
+            Assert.That(obj.Success, Is.EqualTo(true));
+            Assert.That(obj.Response, Is.EqualTo("Yes"));
         }
 
         [Test]
-        public void TestStringOfJSONCtr()
+        public void TestStringOfJsonCtr()
         {
             var json = "{\"success\": true, \"completion\": true, \"response\": \"Yes\"}";
-            var strOfJson = new StringOfJSON(json);
+            var strOfJson = new StringOfJson(json);
 
             var obj = new Result(strOfJson);
             Assert.IsInstanceOf<Result>(obj);
-            Assert.That(obj.success, Is.EqualTo(true));
-            Assert.That(obj.completion, Is.EqualTo(true));
-            Assert.That(obj.response, Is.EqualTo("Yes"));
+            Assert.That(obj.Success, Is.EqualTo(true));
+            Assert.That(obj.Completion, Is.EqualTo(true));
+            Assert.That(obj.Response, Is.EqualTo("Yes"));
         }
     }
 }

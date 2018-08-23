@@ -1,5 +1,6 @@
 ﻿/*
     Copyright 2014 Rustici Software
+    Modifications copyright (C) 2018 Neal Daniel
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -19,54 +20,56 @@ using TinCan.Json;
 
 namespace TinCan
 {
-    public class Activity : JsonModel, StatementTarget
+    public class Activity : JsonModel, IStatementTarget
     {
-        public static readonly String OBJECT_TYPE = "Activity";
-        public String ObjectType { get { return OBJECT_TYPE; } }
+        public static readonly string OBJECT_TYPE = "Activity";
+        public string ObjectType => OBJECT_TYPE;
 
         private string _id;
-        public string id
+        public string Id
         {
-            get { return _id; }
+            get => _id;
             set
             {
-                Uri uri = new Uri(value);
+                var uri = new Uri(value);
                 _id = value;
             }
         }
 
-        public ActivityDefinition definition { get; set; }
+        public ActivityDefinition Definition { get; set; }
 
         public Activity() { }
 
-        public Activity(StringOfJSON json) : this(json.toJObject()) { }
+        public Activity(StringOfJson json) : this(json.ToJObject()) { }
 
         public Activity(JObject jobj)
         {
             if (jobj["id"] != null)
             {
-                string idFromJSON = jobj.Value<String>("id");
-                Uri uri = new Uri(idFromJSON);
-                id = idFromJSON;
+                var idFromJson = jobj.Value<string>("id");
+                var uri = new Uri(idFromJson);
+                Id = idFromJson;
             }
             if (jobj["definition"] != null)
             {
-                definition = (ActivityDefinition)jobj.Value<JObject>("definition");
+                Definition = (ActivityDefinition)jobj.Value<JObject>("definition");
             }
         }
 
         public override JObject ToJObject(TCAPIVersion version)
         {
-            JObject result = new JObject();
-            result.Add("objectType", ObjectType);
+            var result = new JObject
+            {
+                { "objectType", ObjectType }
+            };
 
-            if (id != null)
+            if (Id != null)
             {
-                result.Add("id", id);
+                result.Add("id", Id);
             }
-            if (definition != null)
+            if (Definition != null)
             {
-                result.Add("definition", definition.ToJObject(version));
+                result.Add("definition", Definition.ToJObject(version));
             }
 
             return result;
