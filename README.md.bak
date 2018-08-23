@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 [![Build Status](https://travis-ci.org/njvsvalhalla/TinCan.NET.svg?branch=master)](https://travis-ci.org/njvsvalhalla/TinCan.NET)
 
+#Info
+=======
 # Info
+>>>>>>> 2dd5839daed311c70754c8499c07a150a17dd23d
 
 A .NET Core C#/.NET library for implementing Tin Can API.
 
