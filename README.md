@@ -1,8 +1,8 @@
-#Info
+# Info
 
 A .NET Core C#/.NET library for implementing Tin Can API.
 
-#About
+# About
 
 This project is a modification of Rustici Software's TinCan.NET Library https://github.com/RusticiSoftware/TinCan.NET and is licensed under the Apache 2.0 license. Also included is modifications from a pull request from github user "peturingi" to update the software for .NET Core, as well as add ActivityDefinition InteractionType. Both of these have not been merged into their master branch as of 8/7/18.
 Pull requests included:
