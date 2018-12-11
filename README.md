@@ -32,4 +32,4 @@ http://tincanapi.com/
 
 Include the TinCan folder in your project and reference the project.
 
-NuGet package will be released soon.
+Nuget package located here: https://www.nuget.org/packages/TinCanCore/ 
