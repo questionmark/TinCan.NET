@@ -23,7 +23,7 @@ namespace TinCan
     public class Agent : JsonModel, IStatementTarget
     {
         public static readonly string OBJECT_TYPE = "Agent";
-        public string ObjectType => OBJECT_TYPE;
+        public virtual string ObjectType => OBJECT_TYPE;
 
         public string Name { get; set; }
         public string Mbox { get; set; }
