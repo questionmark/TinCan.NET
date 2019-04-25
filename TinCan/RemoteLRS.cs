@@ -32,7 +32,7 @@ namespace TinCan
         public Uri Endpoint { get; set; }
         public TCAPIVersion Version { get; set; }
         public string Auth { get; set; }
-        public Dictionary<string, string> Extended { get; set; }
+        public Dictionary<string, string> Extended { get; set; } = new Dictionary<string, string>();
 
         public void SetAuth(string username, string password)
         {
@@ -92,6 +92,23 @@ namespace TinCan
             }
         }
 
+        private string AppendParamsToExistingQueryString(string currentQueryString, Dictionary<string, string> parameters)
+        {
+            if (parameters != null)
+            {
+                foreach (var entry in parameters)
+                {
+                    if (currentQueryString != "")
+                    {
+                        currentQueryString += "&";
+                    }
+                    currentQueryString += HttpUtility.UrlEncode(entry.Key) + "=" + HttpUtility.UrlEncode(entry.Value);
+                }
+            }
+
+            return currentQueryString;
+        }
+
         private async Task<MyHttpResponse> MakeRequest(MyHttpRequest req)
         {
             string url;
@@ -102,27 +119,20 @@ namespace TinCan
             else
             {
                 url = Endpoint.ToString();
-                if (! url.EndsWith("/") && ! req.Resource.StartsWith("/")) {
+                if (!url.EndsWith("/") && !req.Resource.StartsWith("/"))
+                {
                     url += "/";
                 }
                 url += req.Resource;
             }
 
-            if (req.QueryParams != null)
+            var qs = "";
+            qs = AppendParamsToExistingQueryString(qs, req.QueryParams);
+            qs = AppendParamsToExistingQueryString(qs, Extended);
+
+            if (qs != "")
             {
-                var qs = "";
-                foreach (var entry in req.QueryParams)
-                {
-                    if (qs != "")
-                    {
-                        qs += "&";
-                    }
-                    qs += HttpUtility.UrlEncode(entry.Key) + "=" + HttpUtility.UrlEncode(entry.Value);
-                }
-                if (qs != "")
-                {
-                    url += "?" + qs;
-                }
+                url += "?" + qs;
             }
 
             // TODO: handle special properties we recognize, such as content type, modified since, etc.
@@ -134,12 +144,10 @@ namespace TinCan
             {
                 webReq.Headers.Add("Authorization", Auth);
             }
-            if (req.Headers != null)
+
+            foreach (var entry in req.Headers)
             {
-                foreach (var entry in req.Headers)
-                {
-                    webReq.Headers.Add(entry.Key, entry.Value);
-                }
+                webReq.Headers.Add(entry.Key, entry.Value);
             }
 
             webReq.ContentType = req.ContentType ?? "application/octet-stream";
@@ -283,9 +291,11 @@ namespace TinCan
             r.Success = true;
 
             var keys = JArray.Parse(Encoding.UTF8.GetString(res.Content));
-            if (keys.Count > 0) {
+            if (keys.Count > 0)
+            {
                 r.Content = new List<string>();
-                foreach (var key in keys) {
+                foreach (var key in keys)
+                {
                     r.Content.Add((string)key);
                 }
             }
@@ -307,13 +317,13 @@ namespace TinCan
             };
             if (!string.IsNullOrEmpty(document.Etag))
             {
-                req.Headers = new Dictionary<string, string> {{"If-Match", document.Etag}};
+                req.Headers = new Dictionary<string, string> { { "If-Match", document.Etag } };
             }
             else
             {
-                req.Headers = new Dictionary<string, string> {{"If-None-Match", "*"}};
+                req.Headers = new Dictionary<string, string> { { "If-None-Match", "*" } };
             }
-            
+
 
             var res = await MakeRequest(req);
             if (res.Status != HttpStatusCode.NoContent)
@@ -441,7 +451,8 @@ namespace TinCan
                 var ids = JArray.Parse(Encoding.UTF8.GetString(res.Content));
                 statement.Id = new Guid((string)ids[0]);
             }
-            else {
+            else
+            {
                 if (res.Status != HttpStatusCode.NoContent)
                 {
                     r.Success = false;
@@ -562,7 +573,8 @@ namespace TinCan
                 Method = "GET",
                 Resource = Endpoint.GetLeftPart(UriPartial.Authority)
             };
-            if (! req.Resource.EndsWith("/")) {
+            if (!req.Resource.EndsWith("/"))
+            {
                 req.Resource += "/";
             }
             req.Resource += result.More;

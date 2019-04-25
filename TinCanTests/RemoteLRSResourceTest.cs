@@ -369,5 +369,25 @@ namespace TinCanTests
             var lrsRes = await _lrs.DeleteAgentProfileAsync(doc);
             Assert.IsTrue(lrsRes.Success);
         }
+
+        [Test]
+        public async Task TestExtendedParameters()
+        {
+            // RemoteLRS doesn't provide a helpful interface for testing
+            // that we successfully altered the request URL, but this test
+            // is helpful in manual testing and it at least ensures that
+            // specifying values in extended doesn't cause errors.
+            _lrs.Extended.Add("test", "param");
+            var doc = new StateDocument
+            {
+                Activity = Support.Activity,
+                Agent = Support.Agent,
+                Id = "test",
+                Content = System.Text.Encoding.UTF8.GetBytes("Test value")
+            };
+
+            var lrsRes = await _lrs.SaveStateAsync(doc);
+            Assert.IsTrue(lrsRes.Success);
+        }
     }
 }
