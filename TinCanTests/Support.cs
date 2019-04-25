@@ -32,7 +32,8 @@ namespace TinCanTests
         public static StatementRef StatementRef;
         public static SubStatement SubStatement;
 
-        static Support () {
+        static Support()
+        {
             Agent = new Agent
             {
                 Mbox = "mailto:tincancsharp@tincanapi.com"
@@ -55,7 +56,30 @@ namespace TinCanTests
             };
             Activity.Definition.Name.Add("en-US", "Tin Can C# Tests: Unit 0");
             Activity.Definition.Description =
-                new LanguageMap {{"en-US", "Unit test 0 in the test suite for the Tin Can C# library."}};
+                new LanguageMap { { "en-US", "Unit test 0 in the test suite for the Tin Can C# library." } };
+
+            Activity.Definition.InteractionType = InteractionType.ChoiceType;
+            Activity.Definition.Choices = new List<InteractionComponent>();
+
+            for (int i = 1; i <= 3; i++)
+            {
+                var interactionComponent = new InteractionComponent
+                {
+                    Id = "choice-" + i.ToString(),
+                    Description = new LanguageMap()
+                };
+
+                interactionComponent.Description.Add("en-US", "Choice " + i.ToString());
+
+                Activity.Definition.Choices.Add(interactionComponent);
+            }
+
+            Activity.Definition.CorrectResponsesPattern = new List<string>();
+
+            for (int i = 1; i <= 2; i++)
+            {
+                Activity.Definition.CorrectResponsesPattern.Add("choice-" + i.ToString());
+            }
 
             Parent = new Activity
             {
@@ -67,7 +91,7 @@ namespace TinCanTests
                 }
             };
             Parent.Definition.Name.Add("en-US", "Tin Can C# Tests");
-            Parent.Definition.Description = new LanguageMap {{"en-US", "Unit test suite for the Tin Can C# library."}};
+            Parent.Definition.Description = new LanguageMap { { "en-US", "Unit test suite for the Tin Can C# library." } };
 
             StatementRef = new StatementRef(Guid.NewGuid());
 
@@ -95,7 +119,8 @@ namespace TinCanTests
                 Score = Score,
                 Success = true,
                 Completion = true,
-                Duration = new TimeSpan(1, 2, 16, 43)
+                Duration = new TimeSpan(1, 2, 16, 43),
+                Response = "choice-2"
             };
 
             SubStatement = new SubStatement
