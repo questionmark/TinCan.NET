@@ -38,9 +38,9 @@ namespace TinCan
         public List<InteractionComponent> Target { get; set; }
         public List<InteractionComponent> Steps { get; set; }
 
-        public ActivityDefinition() {}
+        public ActivityDefinition() { }
 
-        public ActivityDefinition(StringOfJson json): this(json.ToJObject()) {}
+        public ActivityDefinition(StringOfJson json) : this(json.ToJObject()) { }
 
         public ActivityDefinition(JObject jobj)
         {
@@ -112,12 +112,10 @@ namespace TinCan
                     Steps.Add(new InteractionComponent(jstep));
                 }
             }
-
-
-
         }
 
-        public override JObject ToJObject(TCAPIVersion version) {
+        public override JObject ToJObject(TCAPIVersion version)
+        {
             var result = new JObject();
 
             if (Type != null)
@@ -128,15 +126,15 @@ namespace TinCan
             {
                 result.Add("moreInfo", MoreInfo.ToString());
             }
-            if (Name != null && ! Name.IsEmpty())
+            if (Name != null && !Name.IsEmpty())
             {
                 result.Add("name", Name.ToJObject(version));
             }
-            if (Description != null && ! Description.IsEmpty())
+            if (Description != null && !Description.IsEmpty())
             {
                 result.Add("description", Description.ToJObject(version));
             }
-            if (Extensions != null && ! Extensions.IsEmpty())
+            if (Extensions != null && !Extensions.IsEmpty())
             {
                 result.Add("extensions", Extensions.ToJObject(version));
             }
