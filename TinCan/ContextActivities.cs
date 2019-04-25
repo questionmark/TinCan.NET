@@ -27,43 +27,76 @@ namespace TinCan
         public List<Activity> Category { get; set; }
         public List<Activity> Other { get; set; }
 
-        public ContextActivities() {}
+        public ContextActivities() { }
 
-        public ContextActivities(StringOfJson json): this(json.ToJObject()) {}
+        public ContextActivities(StringOfJson json) : this(json.ToJObject()) { }
 
         public ContextActivities(JObject jobj)
         {
             if (jobj["parent"] != null)
             {
                 Parent = new List<Activity>();
-                foreach (JObject jactivity in jobj["parent"]) {
-                    Parent.Add((Activity)jactivity);
+                if (jobj["parent"].Type == JTokenType.Array)
+                {
+                    foreach (JObject jactivity in jobj["parent"])
+                    {
+                        Parent.Add((Activity)jactivity);
+                    }
+                }
+                else
+                {
+                    Parent.Add((Activity)jobj["parent"]);
                 }
             }
             if (jobj["grouping"] != null)
             {
                 Grouping = new List<Activity>();
-                foreach (JObject jactivity in jobj["grouping"]) {
-                    Grouping.Add((Activity)jactivity);
+                if (jobj["grouping"].Type == JTokenType.Array)
+                {
+                    foreach (JObject jactivity in jobj["grouping"])
+                    {
+                        Grouping.Add((Activity)jactivity);
+                    }
+                }
+                else
+                {
+                    Grouping.Add((Activity)jobj["grouping"]);
                 }
             }
             if (jobj["category"] != null)
             {
                 Category = new List<Activity>();
-                foreach (JObject jactivity in jobj["category"]) {
-                    Category.Add((Activity)jactivity);
+                if (jobj["category"].Type == JTokenType.Array)
+                {
+                    foreach (JObject jactivity in jobj["category"])
+                    {
+                        Category.Add((Activity)jactivity);
+                    }
+                }
+                else
+                {
+                    Category.Add((Activity)jobj["category"]);
                 }
             }
             if (jobj["other"] != null)
             {
                 Other = new List<Activity>();
-                foreach (JObject jactivity in jobj["other"]) {
-                    Other.Add((Activity)jactivity);
+                if (jobj["other"].Type == JTokenType.Array)
+                {
+                    foreach (JObject jactivity in jobj["other"])
+                    {
+                        Other.Add((Activity)jactivity);
+                    }
+                }
+                else
+                {
+                    Other.Add((Activity)jobj["other"]);
                 }
             }
         }
 
-        public override JObject ToJObject(TCAPIVersion version) {
+        public override JObject ToJObject(TCAPIVersion version)
+        {
             var result = new JObject();
 
             if (Parent != null && Parent.Count > 0)
