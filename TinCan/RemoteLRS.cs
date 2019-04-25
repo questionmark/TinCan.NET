@@ -53,8 +53,9 @@ namespace TinCan
         {
             public string Method { get; set; }
             public string Resource { get; set; }
-            public Dictionary<string, string> QueryParams { get; set; }
-            public Dictionary<string, string> Headers { get; set; }
+            public Dictionary<string, string> QueryParams { get; set; } = new Dictionary<string, string>();
+            public Dictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();
+
             public string ContentType { get; set; }
             public byte[] Content { get; set; }
         }
