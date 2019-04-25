@@ -14,14 +14,15 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
-using Newtonsoft.Json.Linq;
 using TinCan.Documents;
 using TinCan.LrsResponses;
 
@@ -92,7 +93,7 @@ namespace TinCan
             }
         }
 
-        private string AppendParamsToExistingQueryString(string currentQueryString, Dictionary<string, string> parameters)
+        private string AppendParamsToExistingQueryString(string currentQueryString, IEnumerable<KeyValuePair<string, string>> parameters)
         {
             if (parameters != null)
             {
@@ -128,7 +129,7 @@ namespace TinCan
 
             var qs = "";
             qs = AppendParamsToExistingQueryString(qs, req.QueryParams);
-            qs = AppendParamsToExistingQueryString(qs, Extended);
+            qs = AppendParamsToExistingQueryString(qs, Extended.Where(w => !req.QueryParams.ContainsKey(w.Key)));
 
             if (qs != "")
             {
