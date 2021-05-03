@@ -11,7 +11,7 @@ Pull requests included:
 https://github.com/RusticiSoftware/TinCan.NET/pull/35 (itself based on : https://github.com/RusticiSoftware/TinCan.NET/pull/17 from 2015, user olivergurnell)
 https://github.com/RusticiSoftware/TinCan.NET/pull/34
 
-Modifications done by myself:
+Modifications done by Neal Daniel (njvsvalhalla):
 * Standardized method, field, property, and variable names
 * Cleaned up code and made more readable
 * Added support for xAPI 1.0.3
@@ -19,6 +19,10 @@ Modifications done by myself:
 * All calls in RemoteLRS are now async
 * The tests were updated to .NET core & fixed any broken tests
 * RemoteLRS tests were made async
+
+Changes done by myself:
+* Fix for Group object type value. (If we use group in xAPI statement, it fails because of wrong object type value)
+* Merged all changes from original TinCan.NET repository upto Release 1.3.0.0
 
 For hosted API documentation, basic usage instructions, supported version listing, etc. visit the main project website at:
 
