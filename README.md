@@ -20,20 +20,22 @@ Modifications done by Neal Daniel (njvsvalhalla):
 * The tests were updated to .NET core & fixed any broken tests
 * RemoteLRS tests were made async
 
-Changes done by myself:
+Changes done by Nayur Agarwal (myself):
 * Fix for Group object type value. (If we use group in xAPI statement, it fails because of wrong object type value)
 * Merged all changes from original TinCan.NET repository upto Release 1.3.0.0
 
-For hosted API documentation, basic usage instructions, supported version listing, etc. visit the main project website at:
+# Parent Project
 
+No new updates in parent project. Last checked: 2nd July, 2022
+
+For hosted API documentation, basic usage instructions, supported version listing, etc. visit the main project website at:
 http://rusticisoftware.github.io/TinCan.NET/
 
 For more information about the Tin Can API visit:
-
 http://tincanapi.com/
 
 # Installation
 
 Include the TinCan folder in your project and reference the project.
 
-Nuget package located here: https://www.nuget.org/packages/TinCanCore/ 
+Nuget package located here: https://www.nuget.org/packages/TinCanStandard
