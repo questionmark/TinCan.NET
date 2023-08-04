@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.org/njvsvalhalla/TinCan.NET.svg?branch=master)](https://travis-ci.org/njvsvalhalla/TinCan.NET)
 
 # Info
 
@@ -20,7 +19,7 @@ Modifications done by Neal Daniel (njvsvalhalla):
 * The tests were updated to .NET core & fixed any broken tests
 * RemoteLRS tests were made async
 
-Changes done by Nayur Agarwal (myself):
+Changes done by Mayur Agarwal (myself):
 * Fix for Group object type value. (If we use group in xAPI statement, it fails because of wrong object type value)
 * Merged all changes from original TinCan.NET repository upto Release 1.3.0.0
 
