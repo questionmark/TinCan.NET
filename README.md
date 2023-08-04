@@ -22,6 +22,7 @@ Modifications done by Neal Daniel (njvsvalhalla):
 Changes done by Mayur Agarwal (myself):
 * Fix for Group object type value. (If we use group in xAPI statement, it fails because of wrong object type value)
 * Merged all changes from original TinCan.NET repository upto Release 1.3.0.0
+* Added GitHub action to publish to Nuget feed
 
 # Parent Project
 
@@ -32,6 +33,15 @@ http://rusticisoftware.github.io/TinCan.NET/
 
 For more information about the Tin Can API visit:
 http://tincanapi.com/
+
+# Generating new release and Nuget package
+In Tincan.csproj file change the version number to the new release version.
+Merge the pull request with your changes.
+Using GitHub desktop create tag with release version on your merge commit and push the tag.
+Then create release with new tag on GitHub website and publish.
+GitHub action will automatically trigger a new release which will push the Nuget package to that Nuget feed.
+Note that we have nuget API token saved in GitHub repositories secrets which is valid for 1 year and should renew after expiry for GitHub action to work.
+To generate new token if expires please contact Mayur or transfer the release to new Nuget feed.
 
 # Installation
 
