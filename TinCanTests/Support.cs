@@ -97,7 +97,7 @@ namespace TinCanTests
 
             Context = new Context
             {
-                Registration = Guid.NewGuid(),
+                Registration = "http://tincanapi.com/TinCanCSharp/Test",
                 Statement = StatementRef,
                 ContextActivities = new ContextActivities
                 {

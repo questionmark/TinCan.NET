@@ -22,7 +22,7 @@ namespace TinCan
 {
     public class Context : JsonModel
     {
-        public Guid? Registration { get; set; }
+        public string Registration { get; set; }
         public Agent Instructor { get; set; }
         public Agent Team { get; set; }
         public ContextActivities ContextActivities { get; set; }
@@ -40,7 +40,7 @@ namespace TinCan
         {
             if (jobj["registration"] != null)
             {
-                Registration = new Guid(jobj.Value<string>("registration"));
+                Registration = jobj.Value<string>("registration");
             }
             if (jobj["instructor"] != null)
             {
