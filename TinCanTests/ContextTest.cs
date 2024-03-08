@@ -57,7 +57,7 @@ namespace TinCanTests
 
         private Context BuildTextContext()
         {
-            var registration = "42c0855b-8f64-47f3-b0e2-3f337930045a";
+            var registration = new Guid("42c0855b-8f64-47f3-b0e2-3f337930045a");
             var contextActivities = new ContextActivities();
             var revision = "";
             var platform = "";
