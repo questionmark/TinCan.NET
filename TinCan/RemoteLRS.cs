@@ -1,4 +1,4 @@
-﻿/*
+/*
     Copyright 2014 Rustici Software
     Modifications copyright (C) 2018 Neal Daniel
 
@@ -34,11 +34,7 @@ namespace TinCan
         public TCAPIVersion Version { get; set; }
         public string Auth { get; set; }
         public Dictionary<string, string> Extended { get; set; } = new Dictionary<string, string>();
-
-        public void SetAuth(string username, string password)
-        {
-            Auth = "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(username + ":" + password));
-        }
+        public Dictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();
 
         public RemoteLrs() { }
         public RemoteLrs(Uri endpoint, TCAPIVersion version, string username, string password)
@@ -93,63 +89,16 @@ namespace TinCan
             }
         }
 
-        private string AppendParamsToExistingQueryString(string currentQueryString, IEnumerable<KeyValuePair<string, string>> parameters)
-        {
-            if (parameters != null)
-            {
-                foreach (var entry in parameters)
-                {
-                    if (currentQueryString != "")
-                    {
-                        currentQueryString += "&";
-                    }
-                    currentQueryString += HttpUtility.UrlEncode(entry.Key) + "=" + HttpUtility.UrlEncode(entry.Value);
-                }
-            }
-
-            return currentQueryString;
-        }
-
         private async Task<MyHttpResponse> MakeRequest(MyHttpRequest req)
         {
-            string url;
-            if (req.Resource.StartsWith("http", StringComparison.InvariantCultureIgnoreCase))
-            {
-                url = req.Resource;
-            }
-            else
-            {
-                url = Endpoint.ToString();
-                if (!url.EndsWith("/") && !req.Resource.StartsWith("/"))
-                {
-                    url += "/";
-                }
-                url += req.Resource;
-            }
-
-            var qs = "";
-            qs = AppendParamsToExistingQueryString(qs, req.QueryParams);
-            qs = AppendParamsToExistingQueryString(qs, Extended.Where(w => !req.QueryParams.ContainsKey(w.Key)));
-
-            if (qs != "")
-            {
-                url += "?" + qs;
-            }
-
+            string url = GetEndpointUrl(req.Resource);
+            url = AppendQueryStringParamsToUrl(url, req.QueryParams);
+           
             // TODO: handle special properties we recognize, such as content type, modified since, etc.
             var webReq = (HttpWebRequest)WebRequest.Create(url);
             webReq.Method = req.Method;
 
-            webReq.Headers.Add("X-Experience-API-Version", Version.ToString());
-            if (Auth != null)
-            {
-                webReq.Headers.Add("Authorization", Auth);
-            }
-
-            foreach (var entry in req.Headers)
-            {
-                webReq.Headers.Add(entry.Key, entry.Value);
-            }
+            AddHeadersToRequest(req, webReq);
 
             webReq.ContentType = req.ContentType ?? "application/octet-stream";
 
@@ -194,16 +143,62 @@ namespace TinCan
             return resp;
         }
 
-        /// <summary>
-        /// See http://www.yoda.arachsys.com/csharp/readbinary.html no license found
-        /// 
-        /// Reads data from a stream until the end is reached. The
-        /// data is returned as a byte array. An IOException is
-        /// thrown if any of the underlying IO calls fail.
-        /// </summary>
-        /// <param name="stream">The stream to read data from</param>
-        /// <param name="initialLength">The initial buffer length</param>
-        private static byte[] ReadFully(Stream stream, int initialLength)
+        private string GetEndpointUrl(string resource)
+        {
+            string url;
+            if (resource.StartsWith("http", StringComparison.InvariantCultureIgnoreCase))
+            {
+                url = resource;
+            }
+            else
+            {
+                url = Endpoint.ToString();
+                if (!url.EndsWith("/") && !resource.StartsWith("/"))
+                {
+                    url += "/";
+                }
+                url += resource;
+            }
+
+            return url;
+        }
+
+        private string AppendQueryStringParamsToUrl(string url, IEnumerable<KeyValuePair<string, string>> parameters)
+        {
+            var queryParams = parameters?.Concat(Extended);
+            if (queryParams == null || !queryParams.Any()) return url;
+            var qs = "?";
+            foreach (var entry in queryParams)
+            {
+                qs += $"{HttpUtility.UrlEncode(entry.Key)}={HttpUtility.UrlEncode(entry.Value)}&";
+            }
+            return (url + qs).TrimEnd('&');
+        }
+
+        private void AddHeadersToRequest(MyHttpRequest req, HttpWebRequest webReq)
+        {
+            webReq.Headers.Add("X-Experience-API-Version", Version.ToString());
+            if (Auth != null)
+            {
+                webReq.Headers.Add("Authorization", Auth);
+            }
+            Headers.Concat(req.Headers);
+            foreach (var entry in Headers)
+            {
+                webReq.Headers.Add(entry.Key, entry.Value);
+            }
+        }
+
+            /// <summary>
+            /// See http://www.yoda.arachsys.com/csharp/readbinary.html no license found
+            /// 
+            /// Reads data from a stream until the end is reached. The
+            /// data is returned as a byte array. An IOException is
+            /// thrown if any of the underlying IO calls fail.
+            /// </summary>
+            /// <param name="stream">The stream to read data from</param>
+            /// <param name="initialLength">The initial buffer length</param>
+            private static byte[] ReadFully(Stream stream, int initialLength)
         {
             // If we've been passed an unhelpful initial length, just
             // use 32K.
@@ -391,6 +386,13 @@ namespace TinCan
             return r;
         }
 
+        #region Public methods
+
+        public void SetAuth(string username, string password)
+        {
+            Auth = "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(username + ":" + password));
+        }
+
         public async Task<AboutLrsResponse> AboutAsync()
         {
             var r = new AboutLrsResponse();
@@ -484,7 +486,7 @@ namespace TinCan
 
             return await SaveStatementAsync(voidStatement);
         }
-        public async Task<StatementsResultLrsResponse> SaveStatementsAsync(List<Statement> statements)
+        public async Task<StatementsResultLrsResponse> SaveStatementsAsync(List<Statement> statements, string timestamp = null)
         {
             var r = new StatementsResultLrsResponse();
 
@@ -494,8 +496,10 @@ namespace TinCan
                 Method = "POST",
                 ContentType = "application/json"
             };
-
+            
             var jarray = new JArray();
+            if (!string.IsNullOrEmpty(timestamp))
+                jarray.Add(JToken.Parse(timestamp + '|'));
             foreach (var st in statements)
             {
                 jarray.Add(st.ToJObject(Version));
@@ -822,5 +826,7 @@ namespace TinCan
 
             return await DeleteDocument("agents/profile", queryParams);
         }
+
+        #endregion
     }
 }

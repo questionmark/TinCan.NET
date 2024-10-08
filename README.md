@@ -24,6 +24,10 @@ Changes done by Mayur Agarwal (myself):
 * Merged all changes from original TinCan.NET repository upto Release 1.3.0.0
 * Added GitHub action to publish to Nuget feed
 
+Modifications done by Naresh Vadala (Questionmark)
+* Add public property Headers to RemoteLrs class to add custom headers to request.
+* Added optional property to SaveStatementsAsync which takes timestamp parameter to add it to the payload
+
 # Parent Project
 
 No new updates in parent project. Last checked: 2nd July, 2022
