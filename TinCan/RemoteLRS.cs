@@ -36,15 +36,26 @@ namespace TinCan
         public Dictionary<string, string> Extended { get; set; } = new Dictionary<string, string>();
         public Dictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();
 
-        public RemoteLrs() { }
+        public RemoteLrs()
+        {
+        }
+
         public RemoteLrs(Uri endpoint, TCAPIVersion version, string username, string password)
         {
             Endpoint = endpoint;
             Version = version;
             SetAuth(username, password);
         }
-        public RemoteLrs(string endpoint, TCAPIVersion version, string username, string password) : this(new Uri(endpoint), version, username, password) { }
-        public RemoteLrs(string endpoint, string username, string password) : this(endpoint, TCAPIVersion.Latest(), username, password) { }
+
+        public RemoteLrs(string endpoint, TCAPIVersion version, string username, string password) : this(
+            new Uri(endpoint), version, username, password)
+        {
+        }
+
+        public RemoteLrs(string endpoint, string username, string password) : this(endpoint, TCAPIVersion.Latest(),
+            username, password)
+        {
+        }
 
         private class MyHttpRequest
         {
@@ -66,7 +77,10 @@ namespace TinCan
             public string Etag { get; }
             public Exception Ex { get; set; }
 
-            public MyHttpResponse() { }
+            public MyHttpResponse()
+            {
+            }
+
             public MyHttpResponse(HttpWebResponse webResp)
             {
                 Status = webResp.StatusCode;
@@ -93,7 +107,7 @@ namespace TinCan
         {
             string url = GetEndpointUrl(req.Resource);
             url = AppendQueryStringParamsToUrl(url, req.QueryParams);
-           
+
             // TODO: handle special properties we recognize, such as content type, modified since, etc.
             var webReq = (HttpWebRequest)WebRequest.Create(url);
             webReq.Method = req.Method;
@@ -137,6 +151,7 @@ namespace TinCan
                         Content = Encoding.UTF8.GetBytes("Web exception without '.Response'")
                     };
                 }
+
                 resp.Ex = ex;
             }
 
@@ -157,6 +172,7 @@ namespace TinCan
                 {
                     url += "/";
                 }
+
                 url += resource;
             }
 
@@ -172,6 +188,7 @@ namespace TinCan
             {
                 qs += $"{HttpUtility.UrlEncode(entry.Key)}={HttpUtility.UrlEncode(entry.Value)}&";
             }
+
             return (url + qs).TrimEnd('&');
         }
 
@@ -182,6 +199,7 @@ namespace TinCan
             {
                 webReq.Headers.Add("Authorization", Auth);
             }
+
             Headers.Concat(req.Headers);
             foreach (var entry in Headers)
             {
@@ -189,16 +207,16 @@ namespace TinCan
             }
         }
 
-            /// <summary>
-            /// See http://www.yoda.arachsys.com/csharp/readbinary.html no license found
-            /// 
-            /// Reads data from a stream until the end is reached. The
-            /// data is returned as a byte array. An IOException is
-            /// thrown if any of the underlying IO calls fail.
-            /// </summary>
-            /// <param name="stream">The stream to read data from</param>
-            /// <param name="initialLength">The initial buffer length</param>
-            private static byte[] ReadFully(Stream stream, int initialLength)
+        /// <summary>
+        /// See http://www.yoda.arachsys.com/csharp/readbinary.html no license found
+        /// 
+        /// Reads data from a stream until the end is reached. The
+        /// data is returned as a byte array. An IOException is
+        /// thrown if any of the underlying IO calls fail.
+        /// </summary>
+        /// <param name="stream">The stream to read data from</param>
+        /// <param name="initialLength">The initial buffer length</param>
+        private static byte[] ReadFully(Stream stream, int initialLength)
         {
             // If we've been passed an unhelpful initial length, just
             // use 32K.
@@ -236,13 +254,15 @@ namespace TinCan
                     read++;
                 }
             }
+
             // Buffer is now too big. Shrink it.
             var ret = new byte[read];
             Array.Copy(buffer, ret, read);
             return ret;
         }
 
-        private async Task<MyHttpResponse> GetDocument(string resource, Dictionary<string, string> queryParams, Document document)
+        private async Task<MyHttpResponse> GetDocument(string resource, Dictionary<string, string> queryParams,
+            Document document)
         {
             var req = new MyHttpRequest
             {
@@ -264,7 +284,8 @@ namespace TinCan
             return res;
         }
 
-        private async Task<ProfileKeysLrsResponse> GetProfileKeys(string resource, Dictionary<string, string> queryParams)
+        private async Task<ProfileKeysLrsResponse> GetProfileKeys(string resource,
+            Dictionary<string, string> queryParams)
         {
             var r = new ProfileKeysLrsResponse();
 
@@ -299,7 +320,8 @@ namespace TinCan
             return r;
         }
 
-        private async Task<LrsResponse> SaveDocument(string resource, Dictionary<string, string> queryParams, Document document)
+        private async Task<LrsResponse> SaveDocument(string resource, Dictionary<string, string> queryParams,
+            Document document)
         {
             var r = new LrsResponse();
 
@@ -386,6 +408,11 @@ namespace TinCan
             return r;
         }
 
+        private bool IsSuccessStatusCode(HttpStatusCode statusCode)
+        {
+            return (int)statusCode >= 200 && (int)statusCode < 300;
+        }
+
         #region Public methods
 
         public void SetAuth(string username, string password)
@@ -443,7 +470,7 @@ namespace TinCan
             var res = await MakeRequest(req);
             if (statement.Id == null)
             {
-                if (res.Status != HttpStatusCode.OK)
+                if (!IsSuccessStatusCode(res.Status))
                 {
                     r.Success = false;
                     r.HttpException = res.Ex;
@@ -470,6 +497,7 @@ namespace TinCan
 
             return r;
         }
+
         public async Task<StatementLrsResponse> VoidStatementAsync(Guid id, Agent agent)
         {
             var voidStatement = new Statement
@@ -486,7 +514,9 @@ namespace TinCan
 
             return await SaveStatementAsync(voidStatement);
         }
-        public async Task<StatementsResultLrsResponse> SaveStatementsAsync(List<Statement> statements, string timestamp = null)
+
+        public async Task<StatementsResultLrsResponse> SaveStatementsAsync(List<Statement> statements,
+            string timestamp = null)
         {
             var r = new StatementsResultLrsResponse();
 
@@ -496,7 +526,7 @@ namespace TinCan
                 Method = "POST",
                 ContentType = "application/json"
             };
-            
+
             var jarray = new JArray();
             if (!string.IsNullOrEmpty(timestamp))
                 jarray.Add(JToken.Parse(timestamp + '|'));
@@ -504,10 +534,11 @@ namespace TinCan
             {
                 jarray.Add(st.ToJObject(Version));
             }
+
             req.Content = Encoding.UTF8.GetBytes(jarray.ToString());
 
             var res = await MakeRequest(req);
-            if (res.Status != HttpStatusCode.OK)
+            if (!IsSuccessStatusCode(res.Status))
             {
                 r.Success = false;
                 r.HttpException = res.Ex;
@@ -526,6 +557,7 @@ namespace TinCan
 
             return r;
         }
+
         public async Task<StatementLrsResponse> RetrieveStatementAsync(Guid id)
         {
             var queryParams = new Dictionary<string, string>
@@ -535,6 +567,7 @@ namespace TinCan
 
             return await GetStatement(queryParams);
         }
+
         public async Task<StatementLrsResponse> RetrieveVoidedStatementAsync(Guid id)
         {
             var queryParams = new Dictionary<string, string>
@@ -544,6 +577,7 @@ namespace TinCan
 
             return await GetStatement(queryParams);
         }
+
         public async Task<StatementsResultLrsResponse> QueryStatementsAsync(StatementsQuery query)
         {
             var r = new StatementsResultLrsResponse();
@@ -569,6 +603,7 @@ namespace TinCan
 
             return r;
         }
+
         public async Task<StatementsResultLrsResponse> MoreStatementsAsync(StatementsResult result)
         {
             var r = new StatementsResultLrsResponse();
@@ -582,6 +617,7 @@ namespace TinCan
             {
                 req.Resource += "/";
             }
+
             req.Resource += result.More;
 
             var res = await MakeRequest(req);
@@ -616,6 +652,7 @@ namespace TinCan
 
             return await GetProfileKeys("activities/state", queryParams);
         }
+
         public async Task<StateLrsResponse> RetrieveStateAsync(string id, Activity activity, Agent agent,
             Guid? registration = null)
         {
@@ -649,11 +686,13 @@ namespace TinCan
                 r.SetErrMsgFromBytes(resp.Content);
                 return r;
             }
+
             r.Success = true;
             r.Content = state;
 
             return r;
         }
+
         public async Task<LrsResponse> SaveStateAsync(StateDocument state)
         {
             var queryParams = new Dictionary<string, string>
@@ -669,6 +708,7 @@ namespace TinCan
 
             return await SaveDocument("activities/state", queryParams, state);
         }
+
         public async Task<LrsResponse> DeleteStateAsync(StateDocument state)
         {
             var queryParams = new Dictionary<string, string>
@@ -684,6 +724,7 @@ namespace TinCan
 
             return await DeleteDocument("activities/state", queryParams);
         }
+
         public async Task<LrsResponse> ClearStateAsync(Activity activity, Agent agent, Guid? registration = null)
         {
             var queryParams = new Dictionary<string, string>
@@ -709,6 +750,7 @@ namespace TinCan
 
             return await GetProfileKeys("activities/profile", queryParams);
         }
+
         public async Task<ActivityProfileLrsResponse> RetrieveActivityProfileAsync(string id, Activity activity)
         {
             var r = new ActivityProfileLrsResponse();
@@ -733,11 +775,13 @@ namespace TinCan
                 r.SetErrMsgFromBytes(resp.Content);
                 return r;
             }
+
             r.Success = true;
             r.Content = profile;
 
             return r;
         }
+
         public async Task<LrsResponse> SaveActivityProfileAsync(ActivityProfileDocument profile)
         {
             var queryParams = new Dictionary<string, string>
@@ -748,6 +792,7 @@ namespace TinCan
 
             return await SaveDocument("activities/profile", queryParams, profile);
         }
+
         public async Task<LrsResponse> DeleteActivityProfileAsync(ActivityProfileDocument profile)
         {
             var queryParams = new Dictionary<string, string>
@@ -770,6 +815,7 @@ namespace TinCan
 
             return await GetProfileKeys("agents/profile", queryParams);
         }
+
         public async Task<AgentProfileLrsResponse> RetrieveAgentProfileAsync(string id, Agent agent)
         {
             var r = new AgentProfileLrsResponse();
@@ -805,6 +851,7 @@ namespace TinCan
 
             return r;
         }
+
         public async Task<LrsResponse> SaveAgentProfileAsync(AgentProfileDocument profile)
         {
             var queryParams = new Dictionary<string, string>
@@ -815,6 +862,7 @@ namespace TinCan
 
             return await SaveDocument("agents/profile", queryParams, profile);
         }
+
         public async Task<LrsResponse> DeleteAgentProfileAsync(AgentProfileDocument profile)
         {
             var queryParams = new Dictionary<string, string>
