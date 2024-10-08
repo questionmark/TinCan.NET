@@ -1,11 +1,11 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinCan", "TinCan\TinCan.csproj", "{B5366A46-A7AF-49D8-AD30-91DB06CF2E95}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TinCan", "TinCan\TinCan.csproj", "{B5366A46-A7AF-49D8-AD30-91DB06CF2E95}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinCanTests", "TinCanTests\TinCanTests.csproj", "{747F7E99-04E7-4312-808A-B2AB9225CF9B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TinCanTests", "TinCanTests\TinCanTests.csproj", "{747F7E99-04E7-4312-808A-B2AB9225CF9B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
