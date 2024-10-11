@@ -10,7 +10,7 @@ namespace TinCan
         string Auth { get; set; }
         Dictionary<string, string> Extended { get; set; }
         Dictionary<string, string> Headers { get; set; }
-        bool UseHttpClinet { get; set; }
+        bool UseHttpClient { get; set; }
         string GetJsonStringFromStatements(List<Statement> statements);
         void SetAuth(string username, string password);
     }

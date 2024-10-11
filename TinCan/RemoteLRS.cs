@@ -37,8 +37,7 @@ namespace TinCan
         public Dictionary<string, string> Extended { get; set; } = new Dictionary<string, string>();
         public Dictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();
         private HttpClient _httpClient { get; set; }
-        //Passing FeatureFlag to TinCan to control form LaunchDarkly
-        public bool UseHttpClinet { get; set; }
+        public bool UseHttpClient { get; set; }
 
         public RemoteLrs()
         {
@@ -658,7 +657,7 @@ namespace TinCan
 
         public async Task<StatementsResultLrsResponse> SaveStatementsAsync(List<Statement> statements)
         {
-            if (UseHttpClinet)
+            if (UseHttpClient)
             {
                 var req = new MyHttpRequest
                 {

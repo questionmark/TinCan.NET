@@ -188,7 +188,7 @@ namespace TinCanTests
                 statement2
             };
 
-            _lrs.UseHttpClinet = true;
+            _lrs.UseHttpClient = true;
             
             var lrsRes = await _lrs.SaveStatementsAsync(statements);
             
