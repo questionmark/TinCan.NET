@@ -165,6 +165,38 @@ namespace TinCanTests
         }
 
         [Test]
+        public async Task TestSaveStatementsAsync_Uses_HttpClient()
+        {
+            var statement1 = new Statement
+            {
+                Actor = Support.Agent,
+                Verb = Support.Verb,
+                Target = Support.Parent
+            };
+
+            var statement2 = new Statement
+            {
+                Actor = Support.Agent,
+                Verb = Support.Verb,
+                Target = Support.Activity,
+                Context = Support.Context
+            };
+
+            var statements = new List<Statement>
+            {
+                statement1,
+                statement2
+            };
+
+            _lrs.UseHttpClinet = true;
+            
+            var lrsRes = await _lrs.SaveStatementsAsync(statements);
+            
+            Assert.IsTrue(lrsRes.Success);
+            // TODO: check statements match and ids not null
+        }
+
+        [Test]
         public async Task TestRetrieveStatementAsync()
         {
             var statement = new Statement
