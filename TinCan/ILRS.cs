@@ -28,7 +28,7 @@ namespace TinCan
 
         Task<StatementLrsResponse> SaveStatementAsync(Statement statement);
         Task<StatementLrsResponse> VoidStatementAsync(Guid id, Agent agent);
-        Task<StatementsResultLrsResponse> SaveStatementsAsync(List<Statement> statements, string timestamp = null);
+        Task<StatementsResultLrsResponse> SaveStatementsAsync(List<Statement> statements);
         Task<StatementLrsResponse> RetrieveStatementAsync(Guid id);
         Task<StatementLrsResponse> RetrieveVoidedStatementAsync(Guid id);
         Task<StatementsResultLrsResponse> QueryStatementsAsync(StatementsQuery query);

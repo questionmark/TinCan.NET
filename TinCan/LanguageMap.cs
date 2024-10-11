@@ -75,7 +75,7 @@ namespace TinCan
 
         public IEnumerator GetEnumerator()
         {
-            throw new NotImplementedException();
+           return _map.GetEnumerator();
         }
     }
 }

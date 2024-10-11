@@ -28,6 +28,10 @@ Modifications done by Naresh Vadala (Questionmark)
 * Add public property Headers to RemoteLrs class to add custom headers to request.
 * Added optional property to SaveStatementsAsync which takes timestamp parameter to add it to the payload
 
+Modifications done by Naresh Vadala (Questionmark)
+* Removed optional property to SaveStatementsAsync which takes timestamp parameter to add it to the payload
+* Refactored code to use HttpClient to make request rather WebRequest as it is obsolete
+
 # Parent Project
 
 No new updates in parent project. Last checked: 2nd July, 2022

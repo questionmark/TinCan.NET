@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -28,16 +29,23 @@ using TinCan.LrsResponses;
 
 namespace TinCan
 {
-    public class RemoteLrs : ILrs
+    public class RemoteLrs : IRemoteLrs
     {
         public Uri Endpoint { get; set; }
         public TCAPIVersion Version { get; set; }
         public string Auth { get; set; }
         public Dictionary<string, string> Extended { get; set; } = new Dictionary<string, string>();
         public Dictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();
+        private HttpClient _httpClient { get; set; }
+        public bool UseHttpClient { get; set; }
 
         public RemoteLrs()
         {
+        }
+
+        public RemoteLrs(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
         }
 
         public RemoteLrs(Uri endpoint, TCAPIVersion version, string username, string password)
@@ -60,12 +68,15 @@ namespace TinCan
         private class MyHttpRequest
         {
             public string Method { get; set; }
+            public HttpMethod HttpMethod { get; set; }
             public string Resource { get; set; }
             public Dictionary<string, string> QueryParams { get; set; } = new Dictionary<string, string>();
             public Dictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();
 
             public string ContentType { get; set; }
             public byte[] Content { get; set; }
+            public string StringContent { get; set; }
+
         }
 
         private class MyHttpResponse
@@ -73,6 +84,7 @@ namespace TinCan
             public HttpStatusCode Status { get; }
             public string ContentType { get; }
             public byte[] Content { get; set; }
+            public string StringContent { get; set; }
             public DateTime LastModified { get; }
             public string Etag { get; }
             public Exception Ex { get; set; }
@@ -99,6 +111,34 @@ namespace TinCan
                 using (var stream = webResp.GetResponseStream())
                 {
                     Content = ReadFully(stream, (int)webResp.ContentLength);
+                }
+            }
+
+            public MyHttpResponse(HttpResponseMessage httpResponseMessage)
+            
+            {
+                Status = httpResponseMessage.StatusCode;
+                try
+                {
+                    if (httpResponseMessage.Headers.Contains("Etag"))
+                    {
+                        Etag = httpResponseMessage.Headers.GetValues("Etag")?.FirstOrDefault()?.ToString();
+                    }
+
+                    if (httpResponseMessage.Content.Headers.TryGetValues("LastModified", out var values))
+                    {
+                        // Get the Last-Modified header value and parse it to DateTime
+                        var lastModifiedString = values.ToString();
+
+                        if (DateTime.TryParse(lastModifiedString, out DateTime lastModifiedDate))
+                        {
+                            LastModified = lastModifiedDate;
+                        }
+                    }
+                }
+                catch
+                {
+                    //sometimes will throw an exception, just ignore
                 }
             }
         }
@@ -158,6 +198,68 @@ namespace TinCan
             return resp;
         }
 
+        private async Task<MyHttpResponse> MakeHttpRequest(MyHttpRequest req)
+        {
+            var httpRequestMessage = BuildHttpRequestMessage(req);
+
+            try
+            {
+                if(_httpClient == null) _httpClient = new HttpClient();
+                var httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage);
+                var response = new MyHttpResponse(httpResponseMessage);
+                response.StringContent = await httpResponseMessage.Content.ReadAsStringAsync();
+                return response;
+
+            }
+            catch (HttpRequestException ex)
+            {
+                var httpResponseMessage = new HttpResponseMessage()
+                {
+                    StatusCode = ex.StatusCode.Value,
+                    Content = new StringContent($"Request failed: {ex.Message}"),
+                };
+
+                var response = new MyHttpResponse(httpResponseMessage);
+                response.Ex = ex;
+                return response;
+            }
+            catch (Exception ex)
+            {
+
+                var httpResponseMessage = new HttpResponseMessage()
+                {
+                    StatusCode = HttpStatusCode.InternalServerError,
+                    Content = new StringContent($"Request failed: {ex.Message}"),
+                };
+
+                var response = new MyHttpResponse(httpResponseMessage);
+                response.Ex = ex;
+                return response;
+            }
+        }
+
+        private HttpRequestMessage BuildHttpRequestMessage(MyHttpRequest req)
+        {
+            string url = GetEndpointUrl(req.Resource);
+            url = AppendQueryStringParamsToUrl(url, req.QueryParams);
+
+            var httpRequestMessage = new HttpRequestMessage();
+            httpRequestMessage.RequestUri = new Uri(url);
+            httpRequestMessage.Method = req.HttpMethod;
+
+            AddHeadersToRequest(req.Headers, httpRequestMessage);
+
+            req.ContentType = req.ContentType ?? "application/octet-stream";
+
+            if (req.StringContent != null)
+            {
+                httpRequestMessage.Content = new StringContent(req.StringContent, UTF8Encoding.UTF8, req.ContentType);
+
+            }
+
+            return httpRequestMessage;
+        }
+
         private string GetEndpointUrl(string resource)
         {
             string url;
@@ -205,6 +307,44 @@ namespace TinCan
             {
                 webReq.Headers.Add(entry.Key, entry.Value);
             }
+        }
+
+        private void AddHeadersToRequest(Dictionary<string,string> requestHeaders, HttpRequestMessage httpRequestMessage)
+        {
+            httpRequestMessage.Headers.Clear();
+            httpRequestMessage.Headers.Add("X-Experience-API-Version", Version.ToString());
+            if (Auth != null)
+            {
+                httpRequestMessage.Headers.Add("Authorization", Auth);
+            }
+
+            Headers.Concat(requestHeaders);
+            foreach (var entry in Headers)
+            {
+                httpRequestMessage.Headers.Add(entry.Key, entry.Value);
+            }
+        }
+
+        private StatementsResultLrsResponse BuildStatementsResultLrsResponse(List<Statement> statements, MyHttpResponse responseMessage)
+        {
+            var resultLrsResponse = new StatementsResultLrsResponse();
+            if (!IsSuccessStatusCode(responseMessage.Status))
+            {
+                resultLrsResponse.Success = false;
+                resultLrsResponse.HttpException = responseMessage.Ex;
+                resultLrsResponse.ErrMsg = responseMessage.StringContent;
+                return resultLrsResponse;
+            }
+
+            var ids = JArray.Parse(responseMessage.StringContent);
+            for (var i = 0; i < ids.Count; i++)
+            {
+                statements[i].Id = new Guid((string)ids[i]);
+            }
+
+            resultLrsResponse.Success = true;
+            resultLrsResponse.Content = new StatementsResult(statements);
+            return resultLrsResponse;
         }
 
         /// <summary>
@@ -515,47 +655,59 @@ namespace TinCan
             return await SaveStatementAsync(voidStatement);
         }
 
-        public async Task<StatementsResultLrsResponse> SaveStatementsAsync(List<Statement> statements,
-            string timestamp = null)
+        public async Task<StatementsResultLrsResponse> SaveStatementsAsync(List<Statement> statements)
         {
-            var r = new StatementsResultLrsResponse();
-
-            var req = new MyHttpRequest
+            if (UseHttpClient)
             {
-                Resource = "statements",
-                Method = "POST",
-                ContentType = "application/json"
-            };
-
-            var jarray = new JArray();
-            if (!string.IsNullOrEmpty(timestamp))
-                jarray.Add(JToken.Parse(timestamp + '|'));
-            foreach (var st in statements)
-            {
-                jarray.Add(st.ToJObject(Version));
+                var req = new MyHttpRequest
+                {
+                    Resource = "statements",
+                    ContentType = "application/json",
+                    HttpMethod = HttpMethod.Post,
+                    StringContent = GetJsonStringFromStatements(statements)
+                };
+                var myHttpResponse = await MakeHttpRequest(req);
+                return BuildStatementsResultLrsResponse(statements, myHttpResponse);
             }
-
-            req.Content = Encoding.UTF8.GetBytes(jarray.ToString());
-
-            var res = await MakeRequest(req);
-            if (!IsSuccessStatusCode(res.Status))
+            else
             {
-                r.Success = false;
-                r.HttpException = res.Ex;
-                r.SetErrMsgFromBytes(res.Content);
+                var r = new StatementsResultLrsResponse();
+
+                var req = new MyHttpRequest
+                {
+                    Resource = "statements",
+                    Method = "POST",
+                    ContentType = "application/json"
+                };
+
+                var jarray = new JArray();
+                foreach (var st in statements)
+                {
+                    jarray.Add(st.ToJObject(Version));
+                }
+
+                req.Content = Encoding.UTF8.GetBytes(jarray.ToString());
+
+                var res = await MakeRequest(req);
+                if (!IsSuccessStatusCode(res.Status))
+                {
+                    r.Success = false;
+                    r.HttpException = res.Ex;
+                    r.SetErrMsgFromBytes(res.Content);
+                    return r;
+                }
+
+                var ids = JArray.Parse(Encoding.UTF8.GetString(res.Content));
+                for (var i = 0; i < ids.Count; i++)
+                {
+                    statements[i].Id = new Guid((string)ids[i]);
+                }
+
+                r.Success = true;
+                r.Content = new StatementsResult(statements);
+
                 return r;
             }
-
-            var ids = JArray.Parse(Encoding.UTF8.GetString(res.Content));
-            for (var i = 0; i < ids.Count; i++)
-            {
-                statements[i].Id = new Guid((string)ids[i]);
-            }
-
-            r.Success = true;
-            r.Content = new StatementsResult(statements);
-
-            return r;
         }
 
         public async Task<StatementLrsResponse> RetrieveStatementAsync(Guid id)
@@ -873,6 +1025,16 @@ namespace TinCan
             // TODO: need to pass Etag?
 
             return await DeleteDocument("agents/profile", queryParams);
+        }
+
+        public string GetJsonStringFromStatements(List<Statement> statements)
+        {
+            var jarray = new JArray();
+            foreach (var st in statements)
+            {
+                jarray.Add(st.ToJObject(Version));
+            }
+            return jarray.ToString();
         }
 
         #endregion
